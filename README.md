@@ -1,5 +1,5 @@
 
-# Helfiresaga RSDK
+# Hellfire Saga RSDK
 ![](Resources/LogoRSDK.png)
  
 ## Disclamer!
