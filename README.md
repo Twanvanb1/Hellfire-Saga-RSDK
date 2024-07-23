@@ -4,7 +4,7 @@
  
 ## Disclamer!
 * I am not affiliated with Red Miso Studios, and if they want me to take down the repo I will.
-* **Please support the original devs at Red Miso Studios [website](https://redmiso.studio/)! or [discord](https://discords.com/servers/redmisostudios)**
+* **Please support the original devs at Red Miso Studios [website](https://redmiso.studio/) or [discord](https://discords.com/servers/redmisostudios)**
 # FAQ
 ### Q: I found a bug!
 A: Submit them under the `issues` tab and I will try to fix it.
