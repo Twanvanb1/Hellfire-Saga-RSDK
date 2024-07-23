@@ -1,0 +1,165 @@
+// ----------------------------------
+// RSDK Project: Hellfire Saga RSDKv4
+// Script Description: Paralax Sprite
+// Script Author: Twanavnb1)
+// ----------------------------------
+
+// Aliases
+private alias object.value0 : object.scrollSpeed
+private alias object.value1 : object.startPos.x
+private alias object.value2 : object.startPos.y
+
+event ObjectUpdate
+
+end event
+
+event ObjectDraw
+
+	switch object.scrollSpeed
+	default
+	case 0
+		arrayPos0 = -1
+		break
+	case 2
+		arrayPos0 = 3
+		break
+	case 1
+	case 3
+		arrayPos0 = 2
+		break
+	case 4
+		arrayPos0 = 1
+		break
+	case 5
+	case 6
+		arrayPos0 = 0
+		break
+	end switch
+
+	if arrayPos0 >= 0
+		object.xpos = object.startPos.x
+		object.xpos >>= 16
+
+		object.ypos = object.startPos.y
+		object.ypos >>= 16
+
+		temp0   = object.xpos
+		temp0  -= screen.xoffset
+		temp0  -= 160
+		temp0 >>= arrayPos0
+		object.xpos   = temp0
+		object.xpos <<= 16
+		object.xpos += object.startPos.x
+
+		temp0   = object.ypos
+		temp0  -= screen.yoffset
+		temp0  -= 112
+		// since the remakes uses 240 vertical height instead of 224
+		// the plants sometimes looks like their roots are in the air instead of out of camera
+		// so we have to move them 16 pixels down
+		temp0  += 16
+		temp0 >>= arrayPos0
+		object.ypos   = temp0
+		object.ypos <<= 16
+		object.ypos  += object.startPos.y
+	end if
+
+    DrawSprite(object.frame)
+end event
+
+event ObjectStartup
+	LoadSpriteSheet("FDZ/Objects.gif")
+	
+	SpriteFrame(-16, -116, 32, 232, 1, 42)	// #0 - Pillar
+	SpriteFrame(-8, -8, 16, 16, 17, 25)		// #1 - Cage 			//Not used in this zone
+	SpriteFrame(-16, -8, 32, 16, 1, 25)		// #2 - ?				//Not used in this zone
+	SpriteFrame(-29, -120, 58, 240, 34, 42)	// #3 - Tree
+	SpriteFrame(-48, -16, 96, 32, 1, 9)		// #4 - Street Light	//Not used in this zone
+	SpriteFrame(-64, -20, 128, 40, 1, 1)	// #5 - Street Light 2	//Not used in this zone
+
+    foreach (TypeName[Paralax Sprite], arrayPos0, ALL_ENTITIES)
+        object[arrayPos0].frame = object[arrayPos0].propertyValue
+        object[arrayPos0].frame &= 0xF
+        
+        object[arrayPos0].scrollSpeed = object[arrayPos0].propertyValue
+        object[arrayPos0].scrollSpeed >>= 4
+        object[arrayPos0].scrollSpeed &= 0xF
+
+        object[arrayPos0].priority = PRIORITY_ACTIVE
+        object[arrayPos0].drawOrder = 5
+        object[arrayPos0].startPos.x = object[arrayPos0].xpos
+        object[arrayPos0].startPos.y = object[arrayPos0].ypos
+    next
+end event
+
+event RSDKEdit
+	if editor.returnVariable == true
+		switch editor.variableID
+		case EDIT_VAR_PROPVAL // property value
+			checkResult = object.propertyValue
+			break
+		case 0 // frameID
+			checkResult = object.propertyValue
+			checkResult &= 0xF
+			break
+		case 1 // scrollSpeed
+			checkResult = object.propertyValue
+			checkResult >>= 4
+			checkResult &= 0xF
+			break
+		end switch
+	else
+		switch editor.variableID
+		case EDIT_VAR_PROPVAL // property value
+			object.propertyValue = editor.variableValue
+			break
+		case 0 // frameID
+			temp0 = editor.variableValue
+			temp0 &= 0xF
+			object.propertyValue &= 0xF0
+			object.propertyValue |= temp0
+			break
+		case 1 // scrollSpeed
+			temp0 = editor.variableValue
+			temp0 &= 0xF
+			temp0 <<= 4
+
+			object.propertyValue &= 0x0F
+			object.propertyValue |= temp0
+			break
+		end switch
+	end if
+end event
+
+event RSDKDraw
+    object.frame = object.propertyValue
+    object.frame &= 0xF
+	DrawSprite(object.frame)
+end event
+
+event RSDKLoad
+	LoadSpriteSheet("FDZ/Objects.gif")
+	
+	SpriteFrame(-16, -116, 32, 232, 1, 42)	// #0 - Pillar
+	SpriteFrame(-8, -8, 16, 16, 17, 25)		// #1 - Cage 			//Not used in this zone
+	SpriteFrame(-16, -8, 32, 16, 1, 25)		// #2 - ?				//Not used in this zone
+	SpriteFrame(-29, -120, 58, 240, 34, 42)	// #3 - Tree
+	SpriteFrame(-48, -16, 96, 32, 1, 9)		// #4 - Street Light	//Not used in this zone
+	SpriteFrame(-64, -20, 128, 40, 1, 1)	// #5 - Street Light 2	//Not used in this zone
+
+
+	AddEditorVariable("frameID")
+	SetActiveVariable("frameID")
+	AddEnumVariable("Flower Plant", 0)
+	AddEnumVariable("Tall Plant", 1)
+
+	AddEditorVariable("scrollSpeed")
+	SetActiveVariable("scrollSpeed")
+	AddEnumVariable("1x Speed", 0)
+	AddEnumVariable("1/16 speed", 1)
+	AddEnumVariable("1/8 speed", 2)
+	AddEnumVariable("1/4 speed", 3)
+	AddEnumVariable("1/2 speed", 4)
+	AddEnumVariable("2x speed", 5)
+	AddEnumVariable("4x speed", 6)
+end event

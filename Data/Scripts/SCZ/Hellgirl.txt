@@ -1,0 +1,71 @@
+// ----------------------------------
+// RSDK Project: Hellfire Saga RSDKv4
+// Script Description: Hellgirl Decoration
+// Script Author: Twanvanb1
+// ----------------------------------
+
+// ========================
+// Aliases
+// ========================
+
+// ========================
+// Function Declarations
+// ========================
+
+// ========================
+// Static Values
+// ========================
+
+// ========================
+// Tables
+// ========================
+
+// ========================
+// Function Definitions
+// ========================
+
+// ========================
+// Events
+// ========================
+
+event ObjectUpdate
+	object.priority = PRIORITY_ACTIVE
+end event
+
+
+event ObjectDraw
+	object.frame = object.propertyValue
+	object.frame &= 0xF
+	DrawSpriteFX(object.frame, FX_FLIP, object.xpos, object.ypos)
+end event
+
+
+event ObjectStartup
+    
+    foreach (TypeName[Hellgirl], arrayPos0, ALL_ENTITIES)
+		//object[arrayPos0].drawOrder     = 5
+        //object[arrayPos0].priority = PRIORITY_BOUNDS
+    next
+
+	LoadSpriteSheet("SCZ/Objects.gif")
+	
+	SpriteFrame(-12, -24, 24, 48, 1, 1)		// #0 - Idle
+	SpriteFrame(-12, -24, 24, 48, 26, 1)	// #1 - Kiss
+end event
+
+// ========================
+// Editor Events
+// ========================
+
+event RSDKDraw
+	DrawSpriteFX(0, FX_FLIP, object.xpos, object.ypos)
+end event
+
+event RSDKLoad
+	LoadSpriteSheet("SCZ/Objects.gif")
+	
+	SpriteFrame(-12, -24, 24, 48, 1, 1)	// #0
+	
+	SetVariableAlias(ALIAS_VAR_PROPVAL, "Unused")
+end event
+

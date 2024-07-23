@@ -1,0 +1,104 @@
+// ----------------------------------
+// RSDK Project: Hellfire Saga RSDKv4
+// Script Description: FDZ Decoration
+// Script Author: Twanvanb1
+// ----------------------------------
+
+// ========================
+// Aliases
+// ========================
+
+// ========================
+// Function Declarations
+// ========================
+
+// ========================
+// Static Values
+// ========================
+
+// ========================
+// Tables
+// ========================
+
+// ========================
+// Function Definitions
+// ========================
+
+// ========================
+// Events
+// ========================
+
+event ObjectUpdate
+	object.priority = PRIORITY_ACTIVE
+end event
+
+
+event ObjectDraw
+    object.animationTimer++
+    if object.animationTimer == 4
+        object.animationTimer = 0
+        object.frame++
+        object.frame %= 4
+    end if
+
+    temp0 = object.frame
+    temp0++
+	DrawSpriteFX(0, FX_FLIP, object.xpos, object.ypos)
+	DrawSpriteFX(temp0, FX_FLIP, object.xpos, object.ypos)
+end event
+
+
+event ObjectStartup
+    
+    foreach (TypeName[Fan], arrayPos0, ALL_ENTITIES)
+        object[arrayPos0].priority = PRIORITY_ALWAYS
+    next
+
+	LoadSpriteSheet("FDZ/Objects.gif")
+	
+	SpriteFrame(-6, -8, 12, 24, 1, 316)		// #0 - Base
+    SpriteFrame(-16, -3, 32, 11, 14, 316)	// #1 - Blades 1
+    SpriteFrame(-13, -3, 27, 11, 14, 328)	// #2 - Blades 2
+	SpriteFrame(-10, -3, 20, 11, 47, 316)	// #3 - Blades 3
+	SpriteFrame(-13, -3, 27, 11, 42, 328)   // #4 - Blades 4
+end event
+
+// ========================
+// Editor Events
+// ========================
+
+event RSDKEdit
+	if editor.returnVariable == true
+		switch editor.variableID
+		case EDIT_VAR_PROPVAL // property value
+			checkResult = object.propertyValue
+			break
+		case 0 // Sprite
+			checkResult = object.propertyValue
+			break
+		end switch
+	else
+		switch editor.variableID
+		case EDIT_VAR_PROPVAL // property value
+			object.propertyValue = editor.variableValue
+			break
+		case 0 // Sprite
+			object.propertyValue = editor.variableValue
+			break
+		end switch
+	end if
+end event
+
+event RSDKDraw
+	DrawSprite(0)
+	DrawSprite(1)
+end event
+
+event RSDKLoad
+	LoadSpriteSheet("FDZ/Objects.gif")
+	
+	SpriteFrame(-6, -8, 12, 24, 1, 316)		// #0 - Base
+	SpriteFrame(-16, -3, 32, 11, 14, 316)		// #1 - Blades 1
+
+	SetVariableAlias(ALIAS_VAR_PROPVAL, "Unused")
+end event

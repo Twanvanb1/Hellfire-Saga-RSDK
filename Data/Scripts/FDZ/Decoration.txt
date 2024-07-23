@@ -1,0 +1,204 @@
+// ----------------------------------
+// RSDK Project: Hellfire Saga RSDKv4
+// Script Description: FDZ Decoration
+// Script Author: Twanvanb1
+// ----------------------------------
+
+// ========================
+// Aliases
+// ========================
+
+// ========================
+// Function Declarations
+// ========================
+
+// ========================
+// Static Values
+// ========================
+
+// ========================
+// Tables
+// ========================
+
+// ========================
+// Function Definitions
+// ========================
+
+// ========================
+// Events
+// ========================
+
+event ObjectUpdate
+	object.priority = PRIORITY_ACTIVE
+end event
+
+
+event ObjectDraw
+	object.frame = object.propertyValue
+	object.frame &= 0xF
+	DrawSpriteFX(object.frame, FX_FLIP, object.xpos, object.ypos)
+end event
+
+
+event ObjectStartup
+    
+    foreach (TypeName[Decoration], arrayPos0, ALL_ENTITIES)
+		object[arrayPos0].drawOrder     = 5
+        object[arrayPos0].priority = PRIORITY_BOUNDS
+    next
+
+	LoadSpriteSheet("FDZ/Objects.gif")
+	
+	SpriteFrame(-8, -7, 16, 14, 1, 27)		// #0
+	SpriteFrame(-8, -8, 16, 16, 17, 25)		// #1
+	SpriteFrame(-16, -8, 32, 16, 1, 25)		// #2
+	SpriteFrame(-32, -12, 64, 24, 1, 17)	// #3 
+	SpriteFrame(-48, -16, 96, 32, 1, 9)		// #4 
+	SpriteFrame(-64, -20, 128, 40, 1, 1)	// #5 
+end event
+
+// ========================
+// Editor Events
+// ========================
+
+event RSDKEdit
+	if editor.returnVariable == true
+		switch editor.variableID
+		case EDIT_VAR_PROPVAL // property value
+			checkResult = object.propertyValue
+			break
+		case 0 // Sprite
+			checkResult = object.propertyValue
+			break
+		end switch
+	else
+		switch editor.variableID
+		case EDIT_VAR_PROPVAL // property value
+			object.propertyValue = editor.variableValue
+			break
+		case 0 // Sprite
+			object.propertyValue = editor.variableValue
+			break
+		end switch
+	end if
+end event
+
+event RSDKDraw
+	object.frame = object.propertyValue
+	object.frame &= 0xF
+
+	DrawSpriteFX(object.frame, FX_FLIP, object.xpos, object.ypos)
+	switch object.propertyValue
+	case 0
+		temp0 = object.ixpos
+		temp0 -= 8
+		temp0 <<= 16
+
+		temp1 = object.iypos
+		temp1 -= 5
+		temp1 <<= 16
+
+		DrawRectOutline(temp0, temp1, 16, 12, 0xFF, 0xFF, 0xFF, 0xFF)
+		break
+
+	case 1
+		temp0 = object.ixpos
+		temp0 -= 8
+		temp0 <<= 16
+
+		temp1 = object.iypos
+		temp1 -= 8
+		temp1 <<= 16
+
+		DrawRectOutline(temp0, temp1, 16, 16, 0xFF, 0xFF, 0xFF, 0xFF)
+		break
+
+	case 2
+		temp0 = object.ixpos
+		temp0 -= 16
+		temp0 <<= 16
+
+		temp1 = object.iypos
+		temp1 -= 8
+		temp1 <<= 16
+
+		DrawRectOutline(temp0, temp1, 32, 16, 0xFF, 0xFF, 0xFF, 0xFF)
+		break
+
+	case 3
+		temp0 = object.ixpos
+		temp0 -= 32
+		temp0 <<= 16
+
+		temp1 = object.iypos
+		temp1 -= 12
+		temp1 <<= 16
+
+		DrawRectOutline(temp0, temp1, 64, 24, 0xFF, 0xFF, 0xFF, 0xFF)
+		break
+
+	case 4
+		temp0 = object.ixpos
+		temp0 -= 48
+		temp0 <<= 16
+
+		temp1 = object.iypos
+		temp1 -= 16
+		temp1 <<= 16
+
+		DrawRectOutline(temp0, temp1, 96, 32, 0xFF, 0xFF, 0xFF, 0xFF)
+		break
+
+	case 5
+		temp0 = object.ixpos
+		temp0 -= 64
+		temp0 <<= 16
+
+		temp1 = object.iypos
+		temp1 -= 20
+		temp1 <<= 16
+
+		DrawRectOutline(temp0, temp1, 128, 40, 0xFF, 0xFF, 0xFF, 0xFF)
+		break
+
+	case 6
+		break
+
+	case 7
+		break
+
+	case 8
+		break
+
+	end switch
+end event
+
+event RSDKLoad
+	LoadSpriteSheet("FDZ/Objects.gif")
+	
+	SpriteFrame(-8, -7, 16, 14, 1, 27)		// #0
+	SpriteFrame(-8, -8, 16, 16, 17, 25)		// #1
+	SpriteFrame(-16, -8, 32, 16, 1, 25)		// #2
+	SpriteFrame(-32, -12, 64, 24, 1, 17)	// #3 
+	SpriteFrame(-48, -16, 96, 32, 1, 9)		// #4 
+	SpriteFrame(-64, -20, 128, 40, 1, 1)	// #5 
+
+	SpriteFrame(0, 0, 0, 0, 0, 0) // #6
+	SpriteFrame(0, 0, 0, 0, 0, 0) // #7
+	SpriteFrame(-8, -8, 16, 16, 66, 300) // #8
+	SpriteFrame(-8, -8, 16, 16, 66, 300) // #9
+
+	AddEditorVariable("Sprite")
+	SetActiveVariable("Sprite")
+	
+	AddEnumVariable("Inclined floor 16 left", 0)
+	AddEnumVariable("Inclined floor 16 right", 1)
+	AddEnumVariable("Inclined floor 32", 2)
+	AddEnumVariable("Inclined floor 64", 3)
+	AddEnumVariable("Inclined floor 96", 4)
+	AddEnumVariable("Inclined floor 128", 5)
+	AddEnumVariable("Grass 32", 6)
+	AddEnumVariable("Grass 64", 7)
+	AddEnumVariable("Bridge Pole", 8)
+	AddEnumVariable("Bridge Pole FDZ2", 9)
+end event

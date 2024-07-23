@@ -1,0 +1,79 @@
+// ----------------------------------
+// RSDK Project: Hellfire Saga RSDKv4
+// Script Description: FDZ Decoration
+// Script Author: Twanvanb1
+// ----------------------------------
+
+// ========================
+// Aliases
+// ========================
+
+// ========================
+// Function Declarations
+// ========================
+
+// ========================
+// Static Values
+// ========================
+
+// ========================
+// Tables
+// ========================
+
+// ========================
+// Function Definitions
+// ========================
+
+// ========================
+// Events
+// ========================
+
+event ObjectUpdate
+	object.priority = PRIORITY_ACTIVE
+end event
+
+
+event ObjectDraw
+	DrawSpriteFX(0, FX_FLIP, object.xpos, object.ypos)
+
+	temp0 = object.ypos
+	temp0 -= 0x180000
+	DrawSpriteFX(1, FX_FLIP, object.xpos, temp0)
+end event
+
+
+event ObjectStartup
+    
+    foreach (TypeName[HandLayncher], arrayPos0, ALL_ENTITIES)
+		//object[arrayPos0].drawOrder     = 5
+        //object[arrayPos0].priority = PRIORITY_BOUNDS
+    next
+
+	LoadSpriteSheet("SCZ/Objects.gif")
+	
+	SpriteFrame(-32, -28, 64, 56, 1, 165)
+	SpriteFrame(-12, -28, 24, 56, 34, 99)
+	
+end event
+
+// ========================
+// Editor Events
+// ========================
+
+event RSDKDraw
+	DrawSpriteFX(0, FX_FLIP, object.xpos, object.ypos)
+
+	temp0 = object.ypos
+	temp0 -= 0x180000
+	DrawSpriteFX(1, FX_FLIP, object.xpos, temp0)
+end event
+
+event RSDKLoad
+	LoadSpriteSheet("SCZ/Objects.gif")
+	
+	SpriteFrame(-32, -28, 64, 56, 1, 165)
+	SpriteFrame(-12, -28, 24, 56, 34, 99)
+	
+	SetVariableAlias(ALIAS_VAR_PROPVAL, "Unused")
+end event
+
