@@ -1,13 +1,17 @@
 
 # Hellfire Saga RSDK
+
+> [!NOTE]
+> * This is a for fun project and I am not affiliated with Red Miso Studios, and if they want me to take down the repository I will.
+> * **Please support the original devs at Red Miso Studios [website](https://redmiso.studio/) or [discord](https://discords.com/servers/redmisostudios)**
+
 ![](Resources/LogoRSDK.png)
- 
-## Disclamer!
-* I am not affiliated with Red Miso Studios, and if they want me to take down the repo I will.
-* **Please support the original devs at Red Miso Studios [website](https://redmiso.studio/) or [discord](https://discords.com/servers/redmisostudios)**
+
 # FAQ
 ### Q: I found a bug!
 A: Submit them under the `issues` tab and I will try to fix it.
+> [!IMPORTANT]
+> make sure you have the latest build of [RSDKv4](https://github.com/RSDKModding/RSDKv4-Decompilation) and the [Sonic 1 & 2 Scripts](https://github.com/RSDKModding/RSDKv4-Script-Decompilation).
 
 ### Q: I have a feature request. Will you add it? 
 A: Most likely not, this will be a straight port of the Mega Drive/Genisis
