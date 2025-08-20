@@ -16,25 +16,17 @@ private alias object.value31 : object.altContents
 
 // Monitor type aliases
 private alias 0  : MONITOR_BLANK
-private alias 1  : MONITOR_RINGS
-private alias 2  : MONITOR_SHIELD_BLUE
-private alias 3  : MONITOR_INVINCIBILITY
-private alias 4  : MONITOR_SPEEDSHOES
-private alias 5  : MONITOR_1UP_SONIC
-private alias 6  : MONITOR_1UP_TAILS
-private alias 7  : MONITOR_1UP_KNUX
-private alias 8  : MONITOR_SUPER
-private alias 9  : MONITOR_SHIELD_BUBBLE
-private alias 10 : MONITOR_SHIELD_FIRE
-private alias 11 : MONITOR_SHIELD_LIGHTNING
-private alias 12 : MONITOR_EGGMAN
-private alias 13 : MONITOR_TELEPORT
-private alias 14 : MONITOR_RANDOM
-private alias 15 : MONITOR_DEBUG_SHIELD
-private alias 16 : MONITOR_DEBUG_EMERALDS
-private alias 17 : MONITOR_1UP_AMY // Origins exclusive
+private alias 1  : MONITOR_EGGMAN
+private alias 2  : MONITOR_RINGS
+private alias 3  : MONITOR_SHIELD_FIRE
+private alias 4  : MONITOR_SHIELD_LIGHTNING
+private alias 5  : MONITOR_SHIELD_BUBBLE
+private alias 6  : MONITOR_SHIELD_BLUE
+private alias 7  : MONITOR_SWORD
+private alias 8  : MONITOR_EMPTY
+private alias 9 : MONITOR_RANDOM
 
-private alias 16 : MONITOR_COUNT
+private alias 9 : MONITOR_COUNT
 
 // Monitor states
 private alias 0 : MONITOR_STATE_IDLE
@@ -134,25 +126,6 @@ private function Monitor_DebugDraw
 	
 	temp0 = debugMode[0].currentSelection
 	temp0 -= Monitor_startDebugID
-	if temp0 == MONITOR_1UP_SONIC
-#platform: USE_STANDALONE
-		temp0 += stage.playerListPos
-#endplatform
-#platform: USE_ORIGINS
-		// Since Amy's monitor ID isn't with the other characters, just force her icon to show up if we're playing as her
-		// (Not sure why they bothered since you can't spawn life monitors in Origins but whatever)
-		if stage.playerListPos != PLAYER_AMY
-			temp0 += stage.playerListPos
-		else
-			temp0 = 19
-		end if
-#endplatform
-	else
-		if temp0 > MONITOR_1UP_SONIC
-			temp0 += 2
-		end if
-	end if
-
 	temp0 += 2
 	DrawSprite(temp0)
 end function
@@ -161,25 +134,6 @@ end function
 private function Monitor_DebugSpawn
 	temp0 = debugMode[0].currentSelection
 	temp0 -= Monitor_startDebugID
-	if temp0 == MONITOR_1UP_SONIC
-#platform: USE_STANDALONE
-		temp0 += stage.playerListPos
-#endplatform
-#platform: USE_ORIGINS
-		// Since Amy's monitor ID isn't with the other characters, just force her icon to show up if we're playing as her
-		// (Not sure why they bothered since you can't spawn life monitors in Origins but whatever)
-		if stage.playerListPos != PLAYER_AMY
-			temp0 += stage.playerListPos
-		else
-			temp0 = 19
-		end if
-#endplatform
-	else
-		if temp0 > MONITOR_1UP_SONIC
-			temp0 += 2
-		end if
-	end if
-
 	CreateTempObject(TypeName[Monitor], temp0, object.xpos, object.ypos)
 	object[tempObjectPos].frame = object[tempObjectPos].propertyValue
 	object[tempObjectPos].frame += 2
@@ -215,12 +169,6 @@ event ObjectUpdate
 			temp0 |= checkResult
 			CheckEqual(player[currentPlayer].animation, ANI_GLIDING_STOP)
 			temp0 |= checkResult
-#platform: USE_ORIGINS
-			CheckEqual(player[currentPlayer].animation, ANI_HAMMER_JUMP)
-			temp0 |= checkResult
-			CheckEqual(player[currentPlayer].animation, ANI_HAMMER_DASH)
-			temp0 |= checkResult
-#endplatform
 			if temp0 == true
 				if player[currentPlayer].isSidekick == false
 					BoxCollisionTest(C_TOUCH, object.entityPos, -16, -14, 16, 16, currentPlayer, player[currentPlayer].hitboxLeft, player[currentPlayer].hitboxTop, player[currentPlayer].hitboxRight, player[currentPlayer].hitboxBottom)
@@ -249,60 +197,6 @@ event ObjectUpdate
 							temp0 >>= 16
 							temp0 %= 10
 
-							if options.vsMode == true
-								if player[currentPlayer].character == PLAYER_SONIC_A // only let Sonic have access to the elemental shields, they're useless to all other chars anyway
-									GetTableValue(object.propertyValue, temp0, Monitor_randTypesTable_S3)
-								else
-									GetTableValue(object.propertyValue, temp0, Monitor_randTypesTable_S2)
-								end if
-
-								if object.propertyValue == MONITOR_TELEPORT
-									// If we have a Teleport monitor but either of the characters aren't ready to be teleported at the moment, then
-									// just transform the monitor into a more generic reward instead
-									
-									if player[0].controlMode == CONTROLMODE_NONE
-										object.propertyValue = MONITOR_SHIELD_BLUE
-									end if
-
-									if player[1].controlMode == CONTROLMODE_NONE
-										object.propertyValue = MONITOR_SHIELD_BLUE
-									end if
-
-									if player[0].state == Player_State_Static
-										object.propertyValue = MONITOR_RINGS
-									end if
-
-									if player[1].state == Player_State_Static
-										object.propertyValue = MONITOR_RINGS
-									end if
-								end if
-							else
-								if options.shieldType == SHIELDTYPE_RAND_S3
-									GetTableValue(object.propertyValue, temp0, Monitor_randTypesTable_S3)
-								else
-									GetTableValue(object.propertyValue, temp0, Monitor_randTypesTable_S2)
-								end if
-
-								if object.propertyValue == MONITOR_TELEPORT
-									object.propertyValue = MONITOR_RINGS
-								end if
-							end if
-						end if
-
-						if options.vsMode == true
-							if vs.playerID == 0
-								if currentPlayer == 0
-									vs.items1P++
-								else
-									vs.items2P++
-								end if
-							else
-								if currentPlayer == 1
-									vs.items1P++
-								else
-									vs.items2P++
-								end if
-							end if
 						end if
 
 						PlaySfx(SfxName[Destroy], false)
@@ -354,44 +248,17 @@ end event
 event ObjectStartup
 	LoadSpriteSheet("Global/Items.gif")
 	SpriteFrame(-16, -16, 32, 32, 18, 1) // 0 - Base monitor sprite
-	SpriteFrame(-8, -12, 16, 14, 18, 51) // 1 - Static 1
-	SpriteFrame(-8, -12, 16, 14, 35, 51) // 2 - Static 2
-	SpriteFrame(-8, -12, 16, 14, 18, 66) // 3 - MONITOR_RINGS
-	SpriteFrame(-8, -12, 16, 14, 35, 66) // 4 - MONITOR_SHIELD_BLUE
-	SpriteFrame(-8, -12, 16, 14, 18, 81) // 5 - MONITOR_INVINCIBILITY
-	SpriteFrame(-8, -12, 16, 14, 35, 81) // 6 - MONITOR_SPEEDSHOES
-	
-	// Amy's monitor icon is at the end of the list
-#platform: USE_ORIGINS
-	if game.coinMode == false
-#endplatform
-		SpriteFrame(-8, -12, 16, 14, 18, 96)  // 7 - MONITOR_1UP_SONIC
-		SpriteFrame(-8, -12, 16, 14, 35, 96)  // 8 - MONITOR_1UP_TAILS
-		SpriteFrame(-8, -12, 16, 14, 18, 111) // 9 - MONITOR_1UP_KNUX
-#platform: USE_ORIGINS
-	else
-		SpriteFrame(-8, -12, 16, 14, 35, 186) // 7 - MONITOR_1UP_SONIC (Coin)
-		SpriteFrame(-8, -12, 16, 14, 35, 186) // 8 - MONITOR_1UP_TAILS (Coin but again)
-		SpriteFrame(-8, -12, 16, 14, 35, 186) // 9 - MONITOR_1UP_KNUX  (Coin but yet again)
-	end if
-#endplatform
-	
-	SpriteFrame(-8, -12, 16, 14, 35, 111) // 10 - MONITOR_SUPER
-	SpriteFrame(-8, -12, 16, 14, 18, 141) // 11 - MONITOR_SHIELD_BUBBLE
-	SpriteFrame(-8, -12, 16, 14, 35, 126) // 12 - MONITOR_SHIELD_FIRE
-	SpriteFrame(-8, -12, 16, 14, 18, 126) // 13 - MONITOR_SHIELD_LIGHTNING
-	SpriteFrame(-8, -12, 16, 14, 35, 141) // 14 - MONITOR_EGGMAN
-	SpriteFrame(-8, -12, 16, 14, 18, 156) // 15 - MONITOR_TELEPORT
-	SpriteFrame(-8, -12, 16, 14, 35, 156) // 16 - MONITOR_RANDOM
-	SpriteFrame(-8, -12, 16, 14, 18, 171) // 17 - MONITOR_DEBUG_SHIELD
-	SpriteFrame(-8, -12, 16, 14, 35, 171) // 18 - MONITOR_DEBUG_EMERALDS
-#platform: USE_ORIGINS
-	if game.coinMode == false
-		SpriteFrame(-8, -12, 16, 14, 18, 201) // 19 - MONITOR_1UP_AMY
-	else
-		SpriteFrame(-8, -12, 16, 14, 35, 186) // 19 - MONITOR_1UP_AMY (The long awaited return of Coin)
-	end if
-#endplatform
+	SpriteFrame(-8, -13, 16, 16, 18, 50) // 1 - Static 1
+	SpriteFrame(-8, -13, 16, 16, 35, 50) // 2 - Static 2
+	SpriteFrame(-8, -12, 16, 14, 18, 66) // 3 - MONITOR_EGGMAN
+	SpriteFrame(-8, -12, 16, 14, 35, 66) // 4 - MONITOR_RINGS
+	SpriteFrame(-8, -12, 16, 14, 18, 81) // 5 - MONITOR_SHIELD_FIRE
+	SpriteFrame(-8, -12, 16, 14, 35, 81) // 6 - MONITOR_SHIELD_LIGHTNING
+	SpriteFrame(-8, -12, 16, 14, 18, 96)  // 7 - MONITOR_SHIELD_BUBBLE
+	SpriteFrame(-8, -12, 16, 14, 35, 96)  // 8 - MONITOR_SHIELD_BLUE
+	SpriteFrame(-8, -12, 16, 14, 18, 111) // 9 - MONITOR_SWORD
+	SpriteFrame(-8, -12, 16, 14, 35, 111) // 10 - MONITOR_EMPTY
+	SpriteFrame(-8, -14, 16, 16, 35, 50) // 11 -MONITOR_RANDOM 
 	
 	// (The Mania monitor in the Origins version's spritesheet is unused btw)
 	
@@ -400,17 +267,6 @@ event ObjectStartup
 	temp0 = MONITOR_BLANK
 	while temp0 < MONITOR_COUNT
 		temp2 = true
-		// Amy's monitor type isn't added here, instead the debug mode functions force it in when playing as her
-		if temp0 >= MONITOR_1UP_SONIC
-			if temp0 <= MONITOR_1UP_KNUX
-				temp1 = temp0
-				temp1 -= MONITOR_1UP_SONIC
-				if stage.playerListPos != temp1
-					temp2 = false
-				end if
-			end if
-		end if
-
 		if temp2 == true
 			SetTableValue(TypeName[Monitor], DebugMode_ObjCount, DebugMode_TypesTable)
 			SetTableValue(Monitor_DebugDraw, DebugMode_ObjCount, DebugMode_DrawTable)
@@ -425,83 +281,6 @@ event ObjectStartup
 		object[arrayPos0].altContents >>= 4
 		object[arrayPos0].propertyValue &= 15
 	next
-
-	// Turn all 1UP monitors into the icons of the appropriate character
-	if stage.playerListPos == PLAYER_TAILS_A
-		foreach (TypeName[Monitor], arrayPos0, ALL_ENTITIES)
-			if object[arrayPos0].propertyValue == MONITOR_1UP_SONIC
-				object[arrayPos0].propertyValue = MONITOR_1UP_TAILS
-			end if
-		next
-	end if
-	
-	if stage.playerListPos == PLAYER_KNUCKLES_A
-		foreach (TypeName[Monitor], arrayPos0, ALL_ENTITIES)
-			if object[arrayPos0].propertyValue == MONITOR_1UP_SONIC
-				object[arrayPos0].propertyValue = MONITOR_1UP_KNUX
-			end if
-		next
-	end if
-	
-#platform: USE_ORIGINS
-	if stage.playerListPos == PLAYER_AMY
-		foreach (TypeName[Monitor], arrayPos0, ALL_ENTITIES)
-			if object[arrayPos0].propertyValue == MONITOR_1UP_SONIC
-				object[arrayPos0].propertyValue = MONITOR_1UP_AMY
-			end if
-		next
-	end if
-#endplatform
-	
-	// Only 1 life in Time Attack, remove all 1UP monitors
-	if options.gameMode == MODE_TIMEATTACK
-		foreach (TypeName[Monitor], arrayPos0, ALL_ENTITIES)
-			if object[arrayPos0].propertyValue == MONITOR_1UP_SONIC
-				object[arrayPos0].type = TypeName[Blank Object]
-			end if
-		next
-	end if
-	
-	if options.vsMode == true
-		// Set up the monitors for VS mode
-		switch vs.itemMode	
-		case ITEMMODE_RANDOM
-			foreach (TypeName[Monitor], arrayPos0, ALL_ENTITIES)
-				object[arrayPos0].propertyValue = MONITOR_RANDOM
-			next
-			break
-			
-		case ITEMMODE_TELEPORTONLY
-			foreach (TypeName[Monitor], arrayPos0, ALL_ENTITIES)
-				object[arrayPos0].propertyValue = MONITOR_TELEPORT
-			next
-			break
-			
-		// (nothing will happen for ITEMMODE_NOPREFERENCE and ITEMMODE_FIXED, since the monitors should be left alone)
-
-		end switch
-	else
-		// Set up the shield monitors
-		if options.shieldType > SHIELDTYPE_S3
-			foreach (TypeName[Monitor], arrayPos0, ALL_ENTITIES)
-				object[arrayPos0].propertyValue = MONITOR_RANDOM
-			next
-		else
-			if options.shieldType == SHIELDTYPE_S2
-				foreach (TypeName[Monitor], arrayPos0, ALL_ENTITIES)
-					if object[arrayPos0].propertyValue >= MONITOR_SHIELD_BUBBLE
-						if object[arrayPos0].propertyValue <= MONITOR_SHIELD_LIGHTNING
-							if object[arrayPos0].altContents == MONITOR_BLANK
-								object[arrayPos0].type = TypeName[Blank Object]
-							else
-								object[arrayPos0].propertyValue = object[arrayPos0].altContents
-							end if
-						end if
-					end if
-				next
-			end if
-		end if
-	end if
 
 	foreach (TypeName[Monitor], arrayPos0, ALL_ENTITIES)
 		object[arrayPos0].frame = object[arrayPos0].propertyValue
@@ -526,12 +305,6 @@ event RSDKEdit
 			checkResult &= 0xF
 			break
 			
-		case 1 // altContents
-			checkResult = object.propertyValue
-			checkResult >>= 4
-			checkResult &= 0xF
-			break
-			
 		end switch
 	else
 		switch editor.variableID
@@ -546,13 +319,6 @@ event RSDKEdit
 			object.propertyValue |= temp0
 			break
 			
-		case 1 // altContents
-			temp0 = editor.variableValue
-			temp0 &= 0xF
-			temp0 <<= 4
-			object.propertyValue &= 0xF
-			object.propertyValue |= temp0
-			break
 		end switch
 	end if
 end event
@@ -569,60 +335,29 @@ end event
 
 event RSDKLoad
 	LoadSpriteSheet("Global/Items.gif")
-	SpriteFrame(-16, -16, 32, 32, 18, 1) // 0 - Base monitor sprite
-	SpriteFrame(-8, -12, 16, 14, 18, 66) // 1 - MONITOR_RINGS
-	SpriteFrame(-8, -12, 16, 14, 35, 66) // 2 - MONITOR_SHIELD_BLUE
-	SpriteFrame(-8, -12, 16, 14, 18, 81) // 3 - MONITOR_INVINCIBILITY
-	SpriteFrame(-8, -12, 16, 14, 35, 81) // 4 - MONITOR_SPEEDSHOES
-	SpriteFrame(-8, -12, 16, 14, 18, 96)  // 5 - MONITOR_1UP_SONIC
-	SpriteFrame(-8, -12, 16, 14, 35, 96)  // 6 - MONITOR_1UP_TAILS
-	SpriteFrame(-8, -12, 16, 14, 18, 111) // 7 - MONITOR_1UP_KNUX
-	SpriteFrame(-8, -12, 16, 14, 35, 111) // 8 - MONITOR_SUPER
-	SpriteFrame(-8, -12, 16, 14, 18, 141) // 9 - MONITOR_SHIELD_BUBBLE
-	SpriteFrame(-8, -12, 16, 14, 35, 126) // 10 - MONITOR_SHIELD_FIRE
-	SpriteFrame(-8, -12, 16, 14, 18, 126) // 11 - MONITOR_SHIELD_LIGHTNING
-	SpriteFrame(-8, -12, 16, 14, 35, 141) // 12 - MONITOR_EGGMAN
-	SpriteFrame(-8, -12, 16, 14, 18, 156) // 13 - MONITOR_TELEPORT
-	SpriteFrame(-8, -12, 16, 14, 35, 156) // 14 - MONITOR_RANDOM
-	SpriteFrame(-8, -12, 16, 14, 18, 171) // 15 - MONITOR_DEBUG_SHIELD
-	SpriteFrame(-8, -12, 16, 14, 35, 171) // 16 - MONITOR_DEBUG_EMERALDS
-	SpriteFrame(-8, -12, 16, 14, 18, 201) // 17 - MONITOR_1UP_AMY
+	SpriteFrame(-16, -16, 32, 32, 18, 1) // 0 -	MONITOR_BLANK
+	SpriteFrame(-8, -12, 16, 14, 18, 66) // 1 - MONITOR_EGGMAN
+	SpriteFrame(-8, -12, 16, 14, 35, 66) // 2 - MONITOR_RINGS
+	SpriteFrame(-8, -12, 16, 14, 18, 81) // 3 - MONITOR_SHIELD_FIRE
+	SpriteFrame(-8, -12, 16, 14, 35, 81) // 4 - MONITOR_SHIELD_LIGHTNING
+	SpriteFrame(-8, -12, 16, 14, 18, 96)  // 5 - MONITOR_SHIELD_BUBBLE
+	SpriteFrame(-8, -12, 16, 14, 35, 96)  // 6 - MONITOR_SHIELD_BLUE
+	SpriteFrame(-8, -12, 16, 14, 18, 111) // 7 - MONITOR_SWORD
+	SpriteFrame(-8, -12, 16, 14, 35, 111) // 8 - MONITOR_EMPTY
+	SpriteFrame(-8, -13, 16, 16, 35, 50) // 9 -MONITOR_RANDOM 
+
+	
 
 	AddEditorVariable("contents")
 	SetActiveVariable("contents")
 	AddEnumVariable("None", MONITOR_BLANK)
-	AddEnumVariable("10 Rings", MONITOR_RINGS)
-	AddEnumVariable("Blue Shield", MONITOR_SHIELD_BLUE)
-	AddEnumVariable("Invincibility", MONITOR_INVINCIBILITY)
-	AddEnumVariable("Speed Shoes", MONITOR_SPEEDSHOES)
-	AddEnumVariable("1UP (Sonic)", MONITOR_1UP_SONIC)
-	AddEnumVariable("1UP (Tails)", MONITOR_1UP_TAILS)
-	AddEnumVariable("1UP (Knux)", MONITOR_1UP_KNUX)
-	AddEnumVariable("Super", MONITOR_SUPER)
-	AddEnumVariable("Bubble Shield", MONITOR_SHIELD_BUBBLE)
+	AddEnumVariable("Eggman", MONITOR_EGGMAN)
+	AddEnumVariable("Rings", MONITOR_RINGS)
 	AddEnumVariable("Fire Shield", MONITOR_SHIELD_FIRE)
 	AddEnumVariable("Lightning Shield", MONITOR_SHIELD_LIGHTNING)
-	AddEnumVariable("Eggman", MONITOR_EGGMAN)
-	AddEnumVariable("Teleport", MONITOR_TELEPORT)
-	AddEnumVariable("Random", MONITOR_RANDOM)
-	AddEnumVariable("Shields Toggle", MONITOR_DEBUG_SHIELD)
-
-	AddEditorVariable("altContents")
-	SetActiveVariable("altContents")
-	AddEnumVariable("None", MONITOR_BLANK)
-	AddEnumVariable("10 Rings", MONITOR_RINGS)
-	AddEnumVariable("Blue Shield", MONITOR_SHIELD_BLUE)
-	AddEnumVariable("Invincibility", MONITOR_INVINCIBILITY)
-	AddEnumVariable("Speed Shoes", MONITOR_SPEEDSHOES)
-	AddEnumVariable("1UP (Sonic)", MONITOR_1UP_SONIC)
-	AddEnumVariable("1UP (Tails)", MONITOR_1UP_TAILS)
-	AddEnumVariable("1UP (Knux)", MONITOR_1UP_KNUX)
-	AddEnumVariable("Super", MONITOR_SUPER)
 	AddEnumVariable("Bubble Shield", MONITOR_SHIELD_BUBBLE)
-	AddEnumVariable("Fire Shield", MONITOR_SHIELD_FIRE)
-	AddEnumVariable("Lightning Shield", MONITOR_SHIELD_LIGHTNING)
-	AddEnumVariable("Eggman", MONITOR_EGGMAN)
-	AddEnumVariable("Teleport", MONITOR_TELEPORT)
+	AddEnumVariable("Blue Shield", MONITOR_SHIELD_BLUE)
+	AddEnumVariable("Sword", MONITOR_SWORD)
+	AddEnumVariable("Empty", MONITOR_EMPTY)
 	AddEnumVariable("Random", MONITOR_RANDOM)
-	AddEnumVariable("Shields Toggle", MONITOR_DEBUG_SHIELD)
 end event

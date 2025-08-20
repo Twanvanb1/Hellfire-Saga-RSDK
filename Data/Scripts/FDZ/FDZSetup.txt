@@ -52,6 +52,8 @@ private alias 2	:	DEFORM_BG
 
 reserve function FDZSetup_SpeedUpMusic
 reserve function FDZSetup_SlowDownMusic
+reserve function FDZSetup_InitSonicPal
+reserve function FDZSetup_InitSonicRainPal
 
 // ========================
 // Static Values
@@ -61,9 +63,39 @@ reserve function FDZSetup_SlowDownMusic
 // Tables
 // ========================
 
+public table FDZSetup_SonicPal
+	0xFF00FF, 0xe0e0e0, 0x6080c0, 0x4040a0, 0x002060, 0x400000, 0x800000, 0xe02000, 0xe0a000, 0xe08000, 0xe0a0a0, 0xa04060, 0xa0c0e0, 0xa0a0c0, 0x606080, 0x000000
+end table
+
+public table FDZSetup_SonicRainPal
+	0xFF00FF, 0xe0e0e0, 0x4060c0, 0x2020a0, 0x200060, 0x200020, 0x600020, 0xc02020, 0xc08000, 0xc06000, 0xc080a0, 0x804060, 0xc0c0e0, 0xa0a0c0, 0x6060a0, 0x000000
+end table
+
 // ========================
 // Function Definitions
 // ========================
+
+private function FDZSetup_InitSonicPal
+	temp1 = Player_superBlendClr
+	temp2 = 0
+	while temp2 < 16
+		GetTableValue(temp0, temp1, FDZSetup_SonicPal)
+		SetPaletteEntry(0, temp2, temp0)
+		temp1++
+		temp2++
+	loop
+end function
+
+private function FDZSetup_InitSonicRainPal
+	temp1 = Player_superBlendClr
+	temp2 = 0
+	while temp2 < 16
+		GetTableValue(temp0, temp1, FDZSetup_SonicRainPal)
+		SetPaletteEntry(0, temp2, temp0)
+		temp1++
+		temp2++
+	loop
+end function
 
 private function FDZSetup_SpeedUpMusic
 	CheckEqual(object[SLOT_MUSICEVENT_CHANGE].type, TypeName[Music Event])
@@ -134,32 +166,7 @@ end function
 // ========================
 
 event ObjectUpdate
-	//object.paletteTimer++
-	//if object.paletteTimer > 8
-	//	object.paletteTimer = 0
-	//	RotatePalette(0, 128, 175, true)
-	//end if
-
-	//if object.animationTimer == 0
-	//	object.animationTimer = 8
-	//	object.frame += 6
-	//	object.frame %= 48
 	//	temp0 = 329
-	//	temp0 += object.frame
-	//	Copy16x16Tile(228, temp0)
-	//	temp0++
-	//	Copy16x16Tile(229, temp0)
-	//	temp0++
-	//	Copy16x16Tile(230, temp0)
-	//	temp0++
-	//	Copy16x16Tile(231, temp0)
-	//	temp0++
-	//	Copy16x16Tile(232, temp0)
-	//	temp0++
-	//	Copy16x16Tile(233, temp0)
-	//else
-	//	object.animationTimer--
-	//end if
 end event
 
 event ObjectDraw
@@ -173,6 +180,12 @@ event ObjectStartup
 
 	animalType1 = TypeName[Flicky]
 	animalType2 = TypeName[Ricky]
+
+	if stage.actnum > 2
+		CallFunction(FDZSetup_InitSonicRainPal)
+	else
+		CallFunction(FDZSetup_InitSonicPal)
+	end if
 
 	object[SLOT_ZONESETUP].type = TypeName[FDZ Setup]
 	object[SLOT_ZONESETUP].priority = PRIORITY_ACTIVE
