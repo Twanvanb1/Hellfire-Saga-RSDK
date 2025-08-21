@@ -166,7 +166,6 @@ end function
 // ========================
 
 event ObjectUpdate
-	//	temp0 = 329
 end event
 
 event ObjectDraw

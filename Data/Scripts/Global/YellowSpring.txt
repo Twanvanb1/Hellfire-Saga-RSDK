@@ -744,7 +744,7 @@ event ObjectStartup
 
 	temp0 = 0
 	YellowSpring_startDebugID = DebugMode_ObjCount
-	while temp0 < 8
+	while temp0 < 4
 		SetTableValue(TypeName[Yellow Spring], DebugMode_ObjCount, DebugMode_TypesTable)
 		SetTableValue(YellowSpring_DebugDraw, DebugMode_ObjCount, DebugMode_DrawTable)
 		SetTableValue(YellowSpring_DebugSpawn, DebugMode_ObjCount, DebugMode_SpawnTable)

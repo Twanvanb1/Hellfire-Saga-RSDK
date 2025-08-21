@@ -723,7 +723,7 @@ event ObjectStartup
 
 	temp0 = 0
 	RedSpring_startDebugID = DebugMode_ObjCount
-	while temp0 < 8
+	while temp0 < 4
 		SetTableValue(TypeName[Red Spring], DebugMode_ObjCount, DebugMode_TypesTable)
 		SetTableValue(RedSpring_DebugDraw, DebugMode_ObjCount, DebugMode_DrawTable)
 		SetTableValue(RedSpring_DebugSpawn, DebugMode_ObjCount, DebugMode_SpawnTable)

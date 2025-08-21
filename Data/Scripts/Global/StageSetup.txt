@@ -215,16 +215,7 @@ event ObjectUpdate
 		// Handle Player Score Bonus
 		if options.gameMode != MODE_TIMEATTACK
 			if player.score >= player.scoreBonus
-#platform: USE_ORIGINS
-				if game.coinMode == false
-					player.lives++
-				else
-					CallNativeFunction2(NotifyCallback, NOTIFY_ADD_COIN, 1)
-				end if
-#endplatform
-#platform: USE_STANDALONE
 				player.lives++
-#endplatform
 				player.scoreBonus += 50000
 				PlaySfx(SfxName[Life], false)
 				PauseMusic()
@@ -233,6 +224,9 @@ event ObjectUpdate
 			end if
 		end if
 
+		zoneTimer++
+		zoneTimer &= 0x7FFF
+
 		// Handle Oscillations & Platform Array movements
 		oscillation++
 		oscillation &= 0x1FF
@@ -240,24 +234,6 @@ event ObjectUpdate
 
 		// Handle Time Overs
 		if stage.timeEnabled == true
-#platform: USE_ORIGINS
-			if game.coinMode == false
-				CheckEqual(game.timeOver, false)
-				temp0 = checkResult
-				CheckEqual(stage.minutes, 10)
-				temp0 &= checkResult
-				
-				if temp0 != false
-					CheckEqual(stage.debugMode, true)
-					temp0 = checkResult
-					CheckEqual(options.gameMode, MODE_TIMEATTACK)
-					temp0 |= checkResult
-					CheckEqual(game.playMode, BOOT_PLAYMODE_BOSSRUSH)
-					temp0 |= checkResult
-					
-					if temp0 == false
-#endplatform
-#platform: USE_STANDALONE
 				if stage.minutes == 10
 					CheckEqual(stage.debugMode, true)
 					temp0 = checkResult
@@ -265,33 +241,18 @@ event ObjectUpdate
 					temp0 |= checkResult
 					
 					if temp0 == false
-#endplatform
 						stage.timeOver = true
 						currentPlayer = 0
 						player[0].type = TypeName[Player Object]
 						CallFunction(Player_Kill)
 					end if
 					
-#platform: USE_ORIGINS
-					if game.playMode == BOOT_PLAYMODE_CLASSIC
-						// Set the clock to 9:59:59 and disable timer progression so that it stays that way
-						stage.minutes 		= 9
-						stage.seconds 		= 59
-						stage.milliSeconds 	= 99
-						stage.timeEnabled 	= false
-					end if
-#endplatform
-#platform: USE_STANDALONE
 					// Set the clock to 9:59:59 and disable timer progression so that it stays that way
 					stage.minutes 		= 9
 					stage.seconds 		= 59
 					stage.milliSeconds 	= 99
 					stage.timeEnabled 	= false
-#endplatform
 				end if
-#platform: USE_ORIGINS
-			end if
-#endplatform
 		end if
 
 		// Boundaries: Left & Bottom
