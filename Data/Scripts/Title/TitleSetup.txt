@@ -65,7 +65,7 @@ event ObjectUpdate
     object.deformTimer++
 	if object.deformTimer > 1
 		tileLayer[0].deformationOffset += 4
-        if object.state > Title_State_FadeInFlames
+        if object.state > Title_State_ShowLogo
 		    tileLayer[2].deformationOffset++
         end if
 		object.deformTimer = 0
@@ -77,7 +77,7 @@ event ObjectUpdate
     screen.xoffset = temp0
     screen.yoffset = -8
 
-    
+    SetLayerDeformation(2, 32, 8, 0, 0, 0)
 
     switch object.state
     case Title_State_Init

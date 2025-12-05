@@ -10,6 +10,7 @@
 
 
 private alias object.value0 : object.paletteTimer
+private alias object.value1 : object.deformTimer
 
 // Tracks
 private alias 0 : TRACK_STAGE
@@ -60,6 +61,19 @@ reserve function SCZSetup_SlowDownMusic
 // ========================
 // Tables
 // ========================
+
+private table CSZSetup_deformationTable
+	0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0 // 0x10
+	1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0 // 0x20
+	1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0 // 0x30
+	0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0 // 0x40
+	1, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1 // 0x50
+	0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1 // 0x60
+	0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1 // 0x70
+	0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0 // 0x80
+	1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1 // 0x90
+	1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0 // 0xA0
+end table
 
 // ========================
 // Function Definitions
@@ -140,6 +154,12 @@ event ObjectUpdate
 	//	RotatePalette(0, 128, 175, true)
 	//end if
 
+	object.deformTimer++
+	if object.deformTimer > 3
+		tileLayer[1].deformationOffset++
+		object.deformTimer = 0
+	end if
+
 	if object.animationTimer == 0
 		object.animationTimer = 8
 		object.frame++
@@ -176,6 +196,16 @@ event ObjectStartup
 
 	object[SLOT_ZONESETUP].type = TypeName[SCZ Setup]
 	object[SLOT_ZONESETUP].priority = PRIORITY_ACTIVE
+
+	arrayPos0 = 0
+	while arrayPos0 < 576
+		temp0 = arrayPos0
+		temp0 %= 0xA0
+		GetTableValue(stage.deformationData2[arrayPos0], temp0, CSZSetup_deformationTable)
+		arrayPos0++
+	loop
+
+	FlipSign(hParallax[2].scrollSpeed)
 
 end event
 
