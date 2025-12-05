@@ -197,6 +197,12 @@ event ObjectStartup
 	object[SLOT_ZONESETUP].type = TypeName[SCZ Setup]
 	object[SLOT_ZONESETUP].priority = PRIORITY_ACTIVE
 
+	temp0 = screen.xcenter
+	FlipSign(temp0)
+	temp0 += 160
+	temp0 <<= 16
+	hParallax[0].scrollPos = temp0
+
 	arrayPos0 = 0
 	while arrayPos0 < 576
 		temp0 = arrayPos0

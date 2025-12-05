@@ -1,0 +1,387 @@
+// ----------------------------------
+// RSDK Project:  Hellfire Saga
+// Script Description: Sega Object 
+// Script Author: Twanvanb1
+// ----------------------------------
+
+// ========================
+// Aliases
+// ========================
+
+private alias object.value0 : object.timer
+private alias object.value2 : object.parallaxOffsetPos.x
+private alias object.value3 : object.levelSelectCheatPos
+private alias object.value4 : object.anyCheatDone
+private alias object.value5 : object.regionSwitchCheatPos
+
+private alias object.value6 : object.paletteTimer
+private alias object.value7 : object.paletteIndex
+
+private alias object.value8 : object.misoLogoPos.x
+// States
+private alias 0 : SEGA_SETUP
+private alias 1 : SEGA_FADEIN
+private alias 2 : SEGA_SHOWSEGALOGO
+private alias 3 : SEGA_PLAYCHANT
+private alias 4 : SEGA_FADEOUT
+private alias 5 : SEGA_MISO_SLIDEIN
+private alias 6 : SEGA_MISO_FLASH
+private alias 7 : SEGA_MISO_SLIDEOUT
+private alias 8 : SEGA_FADETOTITLE
+
+// Game Modes
+private alias 0 : MODE_NOSAVE
+
+// Priority
+public alias 0 : PRIORITY_BOUNDS
+public alias 1 : PRIORITY_ACTIVE
+public alias 2 : PRIORITY_ALWAYS
+public alias 3 : PRIORITY_XBOUNDS
+public alias 4 : PRIORITY_XBOUNDS_DESTROY
+public alias 5 : PRIORITY_INACTIVE
+public alias 6 : PRIORITY_BOUNDS_SMALL
+public alias 7 : PRIORITY_ACTIVE_SMALL
+
+// Ink Effects
+public alias 0 : INK_NONE
+public alias 1 : INK_BLEND
+public alias 2 : INK_ALPHA
+public alias 3 : INK_ADD
+public alias 4 : INK_SUB
+
+// Flip Directions
+public alias 0 : FLIP_NONE
+public alias 1 : FLIP_X
+public alias 2 : FLIP_Y
+public alias 3 : FLIP_XY
+
+// Player List Pos Aliases
+private alias 2 : PLAYER_KNUCKLES_A
+
+
+// ========================
+// Function Declarations
+// ========================
+
+reserve function Sega_CheckTouchCheatCodes
+
+
+// ========================
+// Function Definitions
+// ========================
+
+private function Sega_CheckTouchCheatCodes
+	CheckTouchRect(0, 0, screen.xsize, screen.ysize)
+	if checkResult == -1
+		object.anyCheatDone = 0
+	end if
+
+	if object.anyCheatDone == false
+		temp0 = screen.xcenter
+		switch object.levelSelectCheatPos
+		case 0
+			temp0 -= 93
+			temp1 = temp0
+			temp1 += 39
+			break
+			
+		case 1
+			temp0 -= 50
+			temp1 = temp0
+			temp1 += 42
+			break
+			
+		case 2
+			temp0 -= 6
+			temp1 = temp0
+			temp1 += 42
+			break
+			
+		case 3
+			temp0 += 36
+			temp1 = temp0
+			temp1 += 58
+			break
+			
+		end switch
+
+		CheckTouchRect(temp0, 90, temp1, 150)
+		if checkResult > -1
+			object.anyCheatDone = true
+			object.levelSelectCheatPos++
+			if object.levelSelectCheatPos == 4
+				if options.gameMode == MODE_NOSAVE
+					PlaySfx(SfxName[Ring L], false)
+					options.stageSelectFlag = true
+				end if
+			end if
+		end if
+
+		temp0 = screen.xcenter
+		switch object.regionSwitchCheatPos
+		case 0
+			temp0 += 36
+			temp1 = temp0
+			temp1 += 58
+			break
+			
+		case 1
+			temp0 -= 6
+			temp1 = temp0
+			temp1 += 42
+			break
+			
+		case 2
+			temp0 -= 50
+			temp1 = temp0
+			temp1 += 42
+			break
+			
+		case 3
+			temp0 -= 93
+			temp1 = temp0
+			temp1 += 39
+			break
+			
+		end switch
+		
+		CheckTouchRect(temp0, 90, temp1, 150)
+		if checkResult > -1
+			object.anyCheatDone = true
+			object.regionSwitchCheatPos++
+			if object.regionSwitchCheatPos == 4
+				PlaySfx(SfxName[Ring L], false)
+				options.region ^= 1
+			end if
+		end if
+	end if
+end function
+
+
+// ========================
+// Events
+// ========================
+
+event ObjectUpdate
+	switch object.state
+	case SEGA_SETUP
+		object.alpha 				= 0x00
+		object.inkEffect			= INK_ALPHA
+		object.timer 				= 320
+		object.parallaxOffsetPos.x	= 760
+		object.misoLogoPos.x = screen.xcenter
+		object.misoLogoPos.x += 320
+		object.paletteIndex = 0
+		LoadPalette("RedMisoIntro1.act", 2, 0, 0, 224)
+		object.state++
+		break
+
+	case SEGA_FADEIN
+		if object.parallaxOffsetPos.x < 1220
+			object.parallaxOffsetPos.x += 16
+		else
+			object.parallaxOffsetPos.x = 1220
+			object.timer = 0
+			object.state++
+		end if
+
+		temp0 = screen.xcenter
+		FlipSign(temp0)
+		temp0 += object.parallaxOffsetPos.x
+		temp0 <<= 16
+		hParallax[3].scrollPos = temp0
+		break
+
+	case SEGA_SHOWSEGALOGO
+		object.timer++
+		if object.timer == 60
+			object.timer = 0
+			PlaySfx(SFXName[Sega Chant], false)
+			object.state++
+		end if
+
+		if object.alpha < 0x100
+			object.alpha += 8
+		end if
+
+		//if object.timer == 2
+		//	
+		//end if
+		CallFunction(Sega_CheckTouchCheatCodes)
+		break
+
+	case SEGA_PLAYCHANT
+		object.timer++
+		if object.timer == 160
+			object.timer = 0
+			object.state++
+		end if
+		break
+
+	case SEGA_FADEOUT
+		if object.alpha > 0
+			object.alpha -= 8
+		else
+			object.state++
+		end if
+		break
+	case SEGA_MISO_SLIDEIN
+		if object.parallaxOffsetPos.x < 1716
+			object.parallaxOffsetPos.x += 16
+		else
+			object.parallaxOffsetPos.x = 1716
+			object.timer = 0
+		end if
+
+		if object.misoLogoPos.x > screen.xcenter
+			object.misoLogoPos.x -= 8
+		else
+			object.misoLogoPos.x = screen.xcenter
+			object.inkEffect = INK_ADD
+			object.alpha = 0x100
+			object.state++
+		end if
+		
+		if object.parallaxOffsetPos.x > 1416
+			object.paletteTimer++
+			if object.paletteTimer > 2
+				object.paletteTimer = 0
+
+				object.paletteIndex++
+				object.paletteIndex %= 16
+			end if
+		end if
+
+		temp0 = screen.xcenter
+		FlipSign(temp0)
+		temp0 += object.parallaxOffsetPos.x
+		temp0 <<= 16
+		hParallax[3].scrollPos = temp0
+		break
+
+	case SEGA_MISO_FLASH
+		if object.alpha > 0
+			object.alpha -= 8
+		else
+			object.timer++
+			if object.timer == 160
+				object.timer = 0
+				object.state++
+			end if
+		end if
+		break
+
+	case SEGA_MISO_SLIDEOUT
+		if object.parallaxOffsetPos.x > 760
+			object.parallaxOffsetPos.x -= 16
+		else
+			object.parallaxOffsetPos.x = 760
+			object.timer = 0
+			object.state++
+		end if
+
+		object.paletteTimer++
+		if object.paletteTimer > 1
+			object.paletteTimer = 0
+
+			if object.paletteIndex > 0 
+				object.paletteIndex--
+			end if
+		end if
+
+		if object.misoLogoPos.x > 0
+			object.misoLogoPos.x -= 8
+		else
+			object.misoLogoPos.x = -320
+		end if
+
+		temp0 = screen.xcenter
+		FlipSign(temp0)
+		temp0 += object.parallaxOffsetPos.x
+		temp0 <<= 16
+		hParallax[3].scrollPos = temp0
+		break
+
+	case SEGA_FADETOTITLE
+		if object.timer < 0x100
+			object.timer += 8
+			SetScreenFade(0x00, 0x00, 0x00, object.timer)
+		else
+			Stage.ActiveLayer[0] = 2
+			Stage.ActiveLayer[1] = 0
+			ResetObjectEntity(object.entityPos, TypeName[Logo], 0, object.xpos, object.ypos)
+			SetScreenFade(0x00, 0x00, 0x00, 0xFF)
+		end if
+		break
+		
+	end switch
+
+	temp1 = object.paletteIndex
+	temp1 <<= 4
+	CopyPalette(2, temp1, 0, 224, 16)
+end event
+
+
+event ObjectDraw
+	object.drawOrder = 1
+	DrawSpriteScreenFX(1, FX_FLIP, object.misoLogoPos.x, screen.ycenter)
+	if object.state <= SEGA_FADEOUT
+		DrawSpriteScreenFX(0, FX_INK, screen.xcenter, screen.ycenter)
+	end if
+	DrawSpriteScreenFX(2, FX_INK, object.misoLogoPos.x, screen.ycenter)
+	
+
+	object.drawOrder = 1
+	temp0 = screen.xcenter
+	temp0 -= 160
+	DrawRect(0, 0, temp0, 240, 0, 0, 0, 255)
+	temp0 = screen.xcenter
+	temp0 += 160
+	DrawRect(temp0, 0, screen.xsize, 240, 0, 0, 0, 255)
+end event
+
+
+event ObjectStartup
+	LoadSpriteSheet("Title/Title.gif")
+	SpriteFrame(-100, -36, 200, 72, 292, 1) 	 // Sega Logo - #0
+	SpriteFrame(-89, -80, 178, 160, 292, 74) 	 // Red Miso Logo - #1
+	SpriteFrame(-89, -80, 178, 160, 113, 145) 	 // Red Miso Logo Flash - #2
+
+
+	
+	temp0 = screen.xcenter
+	FlipSign(temp0)
+	temp0 += 760
+	temp0 <<= 16
+	hParallax[3].scrollPos = temp0
+	tileLayer[3].scrollPos 		= -0x8 0000
+	// Hide touch controls
+	options.touchControls = false
+end event
+
+
+// ========================
+// Editor Events
+// ========================
+
+event RSDKDraw
+	DrawSprite(0)
+
+	temp0 = object.ixpos
+	temp0 -= 160
+	temp0 <<= 16
+	temp1 = object.iypos
+	temp1 -= 120
+	temp1 <<= 16
+
+	DrawRectOutline(temp0, temp1, 320, 240, 255, 255, 255, 255)
+	
+end event
+
+
+event RSDKLoad
+	LoadSpriteSheet("Title/Title.gif")
+	SpriteFrame(-100, -36, 200, 72, 292, 1)	// Sega Logo				- #0
+	
+	SetVariableAlias(ALIAS_VAR_PROPVAL, "unused")
+end event

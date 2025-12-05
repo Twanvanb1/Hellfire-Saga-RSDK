@@ -1,6 +1,6 @@
 // ----------------------------------
 // RSDK Project:  Hellfire Saga
-// Script Description: Tite Setup Object 
+// Script Description: Logo Object 
 // Script Author: Twanvanb1
 // ----------------------------------
 
@@ -9,25 +9,27 @@
 // ========================
 
 
-private alias object.value0 : object.timer
-private alias object.value1 : object.deformTimer
-private alias object.value2 : object.fadeTimer
-private alias object.value3 : object.fadeInTimer
-private alias object.value4 : object.fadeOutTimer
-private alias object.value5 : object.drawPos.y
-private alias object.value6 : object.drawStart.y
-private alias object.value7 : object.moveDelay
-private alias object.value8 : object.delayTimer
-private alias object.value9 : object.deformAmount
+private alias object.value0     : object.timer
+private alias object.value1     : object.deformTimer
+private alias object.value2     : object.fadeTimer
+private alias object.value3     : object.fadeInTimer
+private alias object.value4     : object.fadeOutTimer
+private alias object.value5     : object.drawPos.y
+private alias object.value6     : object.drawStart.y
+private alias object.value7     : object.moveDelay
+private alias object.value8     : object.delayTimer
+private alias object.value9     : object.deformAmount
+private alias object.value10    : object.screenFadeInTimer
 
 private alias 0	:	Title_State_Init
-private alias 1	:	Title_State_FadeIn
-private alias 2	:	Title_State_ShowLogo
-private alias 3	:	Title_State_FadeInFlames
-private alias 4	:	Title_State_PressStart
-private alias 5	:	Title_State_FlashStart
-private alias 6	:	Title_State_MoveLogo
-private alias 7	:	Title_State_ToLevel
+private alias 1	:	Title_State_FadeScreenIn
+private alias 2	:	Title_State_FadeIn
+private alias 3	:	Title_State_ShowLogo
+private alias 4 :	Title_State_FadeInFlames
+private alias 5	:	Title_State_PressStart
+private alias 6	:	Title_State_FlashStart
+private alias 7	:	Title_State_MoveLogo
+private alias 8	:	Title_State_ToLevel
 
 // Deformation Layer
 private alias 2	:	DEFORM_BG
@@ -91,8 +93,22 @@ event ObjectUpdate
         object.scale = 0
         object.fadeInTimer = 512
         object.deformAmount = 1
+        object.screenFadeInTimer = 320
+        SetScreenFade(0, 0, 0, object.screenFadeInTimer)
         object.state++
         break
+
+    case Title_State_FadeScreenIn
+        if object.screenFadeInTimer > 0
+            object.screenFadeInTimer -= 16
+        else
+            object.screenFadeInTimer = 0
+            object.state++
+        end if
+        SetScreenFade(0, 0, 0, object.screenFadeInTimer)
+
+        break
+    
     case Title_State_FadeIn
         if object.fadeInTimer > 0
             object.fadeInTimer -= 8
@@ -201,7 +217,6 @@ event ObjectUpdate
     SetLayerDeformation(0, 128, object.fadeInTimer, 0, 0, 0)
 
     if object.state > Title_State_FadeInFlames
-	    SetLayerDeformation(2, 32, 8, 0, 0, 0)
         if object.state < 6
             object.angle++
             Sin(temp1, object.angle)
@@ -215,9 +230,7 @@ end event
 
 event ObjectDraw
     object.inkeffect = INK_ALPHA
-    DrawSpriteScreenFX(0, FX_INK, screen.xcenter, object.drawPos.y)
-
-    
+    DrawSpriteScreenFX(0, FX_INK, screen.xcenter, object.drawPos.y)    
 
     if object.state > Title_State_FadeInFlames
         object.inkeffect = INK_BLEND
