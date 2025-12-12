@@ -200,10 +200,10 @@ event ObjectUpdate
 		// Handle ring animation
 		// Not done in the ring object itself because all rings should share the same frame
 		ringTimer++
-		if ringTimer == 4
+		if ringTimer == 5
 			ringTimer = 0
 			ringFrame++
-			ringFrame &= 7
+			ringFrame %= 14
 		end if
 
 		// Handle Monitor overlay frame

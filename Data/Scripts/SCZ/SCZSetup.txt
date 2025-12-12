@@ -164,7 +164,7 @@ event ObjectUpdate
 		object.animationTimer = 8
 		object.frame++
 		object.frame %= 4
-		temp0 = 282
+		temp0 = 368
 		temp0 += object.frame
 		Copy16x16Tile(16, temp0)
 		temp0 += 4

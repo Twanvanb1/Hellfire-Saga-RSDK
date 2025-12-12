@@ -172,7 +172,7 @@ event ObjectDraw
 end event
 
 event ObjectStartup
-	SetMusicTrack("EmeraldHill.ogg", TRACK_STAGE, MUSIC_LOOP_FDZ)
+	SetMusicTrack("EmeraldHill2.ogg", TRACK_STAGE, MUSIC_LOOP_FDZ)
 
 	SpeedUpMusic = FDZSetup_SpeedUpMusic
 	SlowDownMusic = FDZSetup_SlowDownMusic

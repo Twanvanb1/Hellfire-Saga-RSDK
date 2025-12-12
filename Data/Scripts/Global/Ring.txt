@@ -9,6 +9,7 @@
 // Aliases
 // ========================
 
+private alias object.value0 : object.drawPos.y
 private alias object.value1 : object.targetPlayer
 
 private alias 0 : RING_IDLE
@@ -47,7 +48,7 @@ reserve function Ring_DebugSpawn
 // ========================
 
 private function Ring_DebugDraw
-	DrawSprite(0)
+	DrawSpriteFX(0, FX_INK, object.xpos, object.ypos)
 end function
 
 
@@ -56,22 +57,12 @@ private function Ring_DebugSpawn
 	object[tempObjectPos].drawOrder = 4
 end function
 
-
 // ========================
 // Events
 // ========================
 
 event ObjectUpdate
-	// Bug Details:
-	// - The loop doesn't check to see if the ring's been obtained already, so
-	//    if two players touch the ring at the same time, then the ring will count twice
-	// - (The CNZ ring properly checks for that.. so why doesn't the normal version have the fix?..)
 	foreach (GROUP_PLAYERS, currentPlayer, ACTIVE_ENTITIES)
-		
-		// Bug Details:
-		// -> While this top check works fine in singleplayer, as well as 2013's online VS, this doesn't work quite as fairly in Origins's local 2PVS
-		//    It puts P2 at a direct disadvantage, since it blocks them from picking up any rings while P1 is recoiling
-		//    On the other hand, however, P1 can still pick up rings even when P2 is recoiling
 		CheckEqual(player[0].state, Player_State_Hurt)
 		temp0 = checkResult
 		
@@ -107,34 +98,6 @@ event ObjectUpdate
 					player[currentPlayer].rings++
 					if player[currentPlayer].rings > 999
 						player[currentPlayer].rings = 999
-					end if
-				end if
-
-				// Check if the player should get an extra life
-				// (Always checking against P1? Doesn't look like P2 can get an extra life with rings in VS..)
-				if player[0].rings >= ringExtraLife
-					// Not in time attack?
-					if options.gameMode != MODE_TIMEATTACK
-						// Give the player an extra life/coin and play the music
-#platform: USE_ORIGINS
-						if game.coinMode == false
-							player.lives++
-						else
-							CallNativeFunction2(NotifyCallback, NOTIFY_ADD_COIN, 1)
-						end if
-#endplatform
-#platform: USE_STANDALONE
-						player.lives++
-#endplatform
-						PlaySfx(SfxName[Life], false)
-						PauseMusic()
-						ResetObjectEntity(SLOT_MUSICEVENT_CHANGE, TypeName[Music Event], MUSICEVENT_TRANSITION, 0, 0)
-						object[SLOT_MUSICEVENT_CHANGE].priority = PRIORITY_ACTIVE
-					end if
-
-					ringExtraLife += 100
-					if ringExtraLife > 300
-						ringExtraLife = 1000
 					end if
 				end if
 
@@ -228,9 +191,27 @@ end event
 
 
 event ObjectDraw
+	object.angle += 4
+	object.angle &= 0x3FF
+	Sin256(temp0, object.angle)
+	//temp0 <<= 8
+
+	object.drawPos.y = temp0
+	object.drawPos.y >>= 16
+
+	object.ypos += object.drawPos.y
+
 	// All rings use the same frame
 	// (Animation is handled by Stage Setup object)
-	DrawSprite(ringFrame)
+	//DrawSprite(ringFrame)
+	temp0 = false
+	if temp0 == true
+		object.alpha = 0x80
+		object.inkEffect = INK_ALPHA
+	end if
+
+	DrawSpriteFX(ringFrame, FX_INK, object.xpos, object.ypos)
+	
 end event
 
 
@@ -240,17 +221,24 @@ event ObjectStartup
 	// (Doesn't mean much, but this is one of the few times in v4 scripts that a code is between LoadSpriteSheet and SpriteFrames)
 	foreach (TypeName[Ring], arrayPos0, ALL_ENTITIES)
 		object[arrayPos0].drawOrder = 4
+		object[arrayPos0].inkEffect = INK_ALPHA
 	next
 
 	// Ring frames
-	SpriteFrame(-8, -8, 16, 16, 1, 1)
-	SpriteFrame(-8, -8, 16, 16, 1, 18)
-	SpriteFrame(-8, -8, 16, 16, 1, 35)
-	SpriteFrame(-8, -8, 16, 16, 1, 52)
-	SpriteFrame(-8, -8, 16, 16, 1, 69)
-	SpriteFrame(-8, -8, 16, 16, 1, 86)
-	SpriteFrame(-8, -8, 16, 16, 1, 103)
-	SpriteFrame(-8, -8, 16, 16, 1, 120)
+	SpriteFrame(-8, -8, 16, 32, 1, 1) 
+	SpriteFrame(-8, -8, 16, 32, 1, 34)
+	SpriteFrame(-8, -8, 16, 32, 1, 67)
+	SpriteFrame(-8, -8, 16, 32, 1, 100)
+	SpriteFrame(-8, -8, 16, 32, 118, 1)
+	SpriteFrame(-8, -8, 16, 32, 135, 1)
+	SpriteFrame(-8, -8, 16, 32, 152, 1)
+	SpriteFrame(-8, -8, 16, 32, 169, 1)
+	SpriteFrame(-8, -8, 16, 32, 118, 34)
+	SpriteFrame(-8, -8, 16, 32, 135, 34)
+	SpriteFrame(-8, -8, 16, 32, 152, 34)
+	SpriteFrame(-8, -8, 16, 32, 169, 34)
+	SpriteFrame(-8, -8, 16, 32, 151, 67)
+	SpriteFrame(-8, -8, 16, 32, 169, 67)
 
 	// Add the Ring to the debug mode object list
 	SetTableValue(TypeName[Ring], DebugMode_ObjCount, DebugMode_TypesTable)

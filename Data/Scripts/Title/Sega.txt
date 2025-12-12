@@ -26,8 +26,9 @@ private alias 3 : SEGA_PLAYCHANT
 private alias 4 : SEGA_FADEOUT
 private alias 5 : SEGA_MISO_SLIDEIN
 private alias 6 : SEGA_MISO_FLASH
-private alias 7 : SEGA_MISO_SLIDEOUT
-private alias 8 : SEGA_FADETOTITLE
+private alias 7 : SEGA_MISO_FLASHFADE
+private alias 8 : SEGA_MISO_SLIDEOUT
+private alias 9 : SEGA_FADETOTITLE
 
 // Game Modes
 private alias 0 : MODE_NOSAVE
@@ -238,7 +239,6 @@ event ObjectUpdate
 		else
 			object.misoLogoPos.x = screen.xcenter
 			object.inkEffect = INK_ADD
-			object.alpha = 0x100
 			object.state++
 		end if
 		
@@ -260,6 +260,14 @@ event ObjectUpdate
 		break
 
 	case SEGA_MISO_FLASH
+		if object.alpha < 100
+			object.alpha += 48
+		else
+			object.state++
+		end if
+		break
+
+	case SEGA_MISO_FLASHFADE
 		if object.alpha > 0
 			object.alpha -= 8
 		else
