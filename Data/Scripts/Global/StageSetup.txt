@@ -224,8 +224,8 @@ event ObjectUpdate
 			end if
 		end if
 
-		zoneTimer++
-		zoneTimer &= 0x7FFF
+		frameTimer++
+		frameTimer &= 0x7FFF
 
 		// Handle Oscillations & Platform Array movements
 		oscillation++

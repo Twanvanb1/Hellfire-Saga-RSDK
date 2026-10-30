@@ -55,6 +55,11 @@ event ObjectStartup
 	SpriteFrame(-32, -12, 64, 24, 1, 17)	// #3 
 	SpriteFrame(-48, -16, 96, 32, 1, 9)		// #4 
 	SpriteFrame(-64, -20, 128, 40, 1, 1)	// #5 
+
+	SpriteFrame(0, 0, 0, 0, 0, 0) // #6
+	SpriteFrame(0, 0, 0, 0, 0, 0) // #7
+	SpriteFrame(-8, -8, 16, 16, 66, 300) // #8
+	SpriteFrame(-8, -8, 16, 16, 66, 300) // #9
 end event
 
 // ========================

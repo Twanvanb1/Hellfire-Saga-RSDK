@@ -355,8 +355,6 @@ event ObjectStartup
 	SpriteFrame(-89, -80, 178, 160, 292, 74) 	 // Red Miso Logo - #1
 	SpriteFrame(-89, -80, 178, 160, 113, 145) 	 // Red Miso Logo Flash - #2
 
-
-	
 	temp0 = screen.xcenter
 	FlipSign(temp0)
 	temp0 += 760

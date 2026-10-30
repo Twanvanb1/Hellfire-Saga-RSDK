@@ -298,7 +298,11 @@ event RSDKEdit
 	end if
 end event
 
-
+	LoadSpriteSheet("Global/Items2.gif")
+	SpriteFrame(-16, -16, 32, 32, 182, 99)
+	SpriteFrame(-16, -16, 32, 32, 182, 132)
+	SpriteFrame(-16, -16, 32, 32, 215, 132)
+	SpriteFrame(-16, -16, 32, 32, 215, 99)
 event RSDKDraw
 	temp0 = object.xpos
 	temp1 = object.ypos

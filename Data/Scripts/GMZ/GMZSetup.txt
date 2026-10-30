@@ -154,23 +154,26 @@ event ObjectUpdate
 	//	object.deformTimer = 0
 	//end if
 
-	if object.animationTimer == 0
-		object.animationTimer = 8
-		object.frame += 6
-		object.frame %= 48
+	if object.animationTimer < 2
 		temp0 = 329
 		temp0 += object.frame
 		Copy16x16Tile(228, temp0)
 		temp0++
 		Copy16x16Tile(229, temp0)
-		// temp0++
-		// Copy16x16Tile(230, temp0)
-		// temp0++
-		// Copy16x16Tile(231, temp0)
-		// temp0++
-		// Copy16x16Tile(232, temp0)
-		// temp0++
-		// Copy16x16Tile(233, temp0)
+		temp0++
+		Copy16x16Tile(230, temp0)
+		temp0++
+		Copy16x16Tile(231, temp0)
+		temp0++
+		Copy16x16Tile(232, temp0)
+		temp0++
+		Copy16x16Tile(233, temp0)
+		temp0++
+
+		object.frame += 6
+		object.frame %= 48
+
+		object.animationTimer = 8
 	else
 		object.animationTimer--
 	end if

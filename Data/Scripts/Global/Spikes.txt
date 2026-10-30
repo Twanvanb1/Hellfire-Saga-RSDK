@@ -1,17 +1,30 @@
 // ----------------------------------
-// RSDK Project: Sonic 2
+// RSDK Project: Sonic 3 '14 Project
 // Script Description: Spikes Object
-// Script Author: Christian Whitehead/Simon Thomley
-// Unpacked by Rubberduckycooly's script unpacker
+// Script Author: Ducky (RDC)
 // ----------------------------------
 
 // ========================
 // Aliases
 // ========================
 
-private alias object.value0 : object.timer
-private alias object.value1 : object.movePos
-private alias object.value2 : object.parentSlot
+private alias object.value0 : object.count
+private alias object.value1 : object.moveType
+private alias object.value2 : object.orientation
+private alias object.value3 : object.parentSlot
+
+private alias object.value4 : object.hitboxL
+private alias object.value5 : object.hitboxT
+private alias object.value6 : object.hitboxR
+private alias object.value7 : object.hitboxB
+
+private alias object.value8  : object.stateMove
+private alias object.value9  : object.moveOffset
+private alias object.value10 : object.offset.x
+private alias object.value11 : spikes.offset.y
+
+private alias object.value12 : object.timer
+private alias object.value13 : object.animationFrame
 
 private alias 0 : SPIKES_STATIC
 private alias 1 : SPIKES_HIDDEN
@@ -21,6 +34,8 @@ private alias 4 : SPIKES_DISAPPEAR
 private alias 5 : SPIKES_HASPARENT
 
 // Player Aliases
+private alias object.xpos : player.xpos
+private alias object.ypos : player.ypos
 private alias object.xvel : player.xvel
 private alias object.yvel : player.yvel
 private alias object.gravity : player.gravity
@@ -41,7 +56,7 @@ reserve function Spikes_DebugSpawn
 // Static Values
 // ========================
 
-private value Spikes_startDebugID = 0
+public value Spikes_startDebugID = 0;
 
 
 // ========================
@@ -58,7 +73,33 @@ end function
 private function Spikes_DebugSpawn
 	temp0 = debugMode[0].currentSelection
 	temp0 -= Spikes_startDebugID
-	CreateTempObject(TypeName[Spikes], temp0, object.xpos, object.ypos)
+	CreateTempObject(TypeName[Spikes], 0, object.xpos, object.ypos)
+
+	object[tempObjectPos].orientation = temp0
+	object[tempObjectPos].orientation++
+	object[tempObjectPos].count = 2
+
+	switch object[tempObjectPos].orientation
+    case COL_TOP
+    case COL_BOTTOM
+        object[tempObjectPos].hitboxL  = -16
+        object[tempObjectPos].hitboxT  = -8
+        object[tempObjectPos].hitboxT  *= object[tempObjectPos].count
+        object[tempObjectPos].hitboxR  = 16
+        object[tempObjectPos].hitboxB  = 8
+        object[tempObjectPos].hitboxB  *= object[tempObjectPos].count
+        break
+
+    case COL_LEFT
+    case COL_RIGHT
+        object[tempObjectPos].hitboxL = -8
+        object[tempObjectPos].hitboxL *= object[tempObjectPos].count
+        object[tempObjectPos].hitboxT = -16
+        object[tempObjectPos].hitboxR = 8
+        object[tempObjectPos].hitboxR *= object[tempObjectPos].count
+        object[tempObjectPos].hitboxB = 16
+        break
+    end switch
 end function
 
 
@@ -67,161 +108,314 @@ end function
 // ========================
 
 event ObjectUpdate
-	switch object.state
-	case SPIKES_HIDDEN
-		if object.timer < 60
-			object.timer++
-		else
-			object.state++
-			object.timer = 0
-			temp0 = screen.xcenter
-			temp0 += 64
-			temp1 = temp0
-			FlipSign(temp0)
-			BoxCollisionTest(C_TOUCH, object.entityPos, temp0, -128, temp1, 128, 0, 0, 0, 0, 0)
-			if checkResult == true
-				PlaySfx(SfxName[Spikes Move], false)
-			end if
-		end if
-		break
+    switch object.stateMove
+        default 
+		case SPIKES_STATIC
+			break
 
-	case SPIKES_APPEAR
-		if object.movePos < 0x200000
-			object.movePos += 0x80000
-			object.xpos += object.xvel
-			object.ypos += object.yvel
-		else
-			object.state++
-		end if
-		break
+        case SPIKES_HIDDEN
+			temp0 = frameTimer
+			temp0 &= 0x40
+            if temp0 == 0
+				temp0 = frameTimer
+				temp0 &= 0x3F
+                if temp0 == 0
+                    object.stateMove++
+                    if object.outOfBounds == false
+                        PlaySfx(SfxName[Spikes Move], false)
+					end if
+                end if
+            end if
+            break
 
-	case SPIKES_SHOWN
-		if object.timer < 60
-			object.timer++
-		else
-			object.state++
-			object.timer = 0
-			temp0 = screen.xcenter
-			temp0 += 64
-			temp1 = temp0
-			FlipSign(temp0)
-			BoxCollisionTest(C_TOUCH, object.entityPos, temp0, -128, temp1, 128, 0, 0, 0, 0, 0)
-			if checkResult == true
-				PlaySfx(SfxName[Spikes Move], false)
-			end if
-		end if
-		break
+        case SPIKES_APPEAR
+            if object.moveOffset >= 0x200000
+                object.stateMove++
+            else
+                object.moveOffset += 0x80000
+                object.xpos += object.xvel
+                object.ypos += object.yvel
+            end if
+            break
 
-	case SPIKES_DISAPPEAR
-		if object.movePos > 0
-			object.movePos -= 0x80000
-			object.xpos -= object.xvel
-			object.ypos -= object.yvel
-		else
-			object.state = SPIKES_HIDDEN
-		end if
-		break
+        case SPIKES_SHOWN
+			temp0 = frameTimer
+			temp0 &= 0x3F
+            if temp0 == 0
+                object.stateMove++
+                if object.outOfBounds == false
+                    PlaySfx(SfxName[Spikes Move], false)
+				end if
+            end if
+            break
+
+        case SPIKES_DISAPPEAR
+            if object.moveOffset <= 0
+                object.stateMove = SPIKES_HIDDEN
+            else
+                object.moveOffset -= 0x80000
+                object.xpos -= object.xvel
+                object.ypos -= object.yvel
+            end if
+            break
 
 	case SPIKES_HASPARENT
 		arrayPos0 = object.parentSlot
 		object.ypos = object[-arrayPos0].ypos
 		break
-	end switch
+    end switch
 
-	switch object.propertyValue
-	case 0
-		foreach (GROUP_PLAYERS, currentPlayer, ACTIVE_ENTITIES)
-			BoxCollisionTest(C_SOLID, object.entityPos, -16, -16, 16, 16, currentPlayer, C_BOX, C_BOX, C_BOX, C_BOX)
-			if checkResult == COL_BOTTOM
-				if player[currentPlayer].gravity == GRAVITY_GROUND
-					CallFunction(Player_Kill)
-				end if
-			end if
+    object.xpos -= object.offset.x
+    object.ypos -= spikes.offset.y
 
-			if player[currentPlayer].yvel > -1
-				BoxCollisionTest(C_TOUCH, object.entityPos, -15, -17, 15, -12, currentPlayer, C_BOX, C_BOX, C_BOX, C_BOX)
-				if checkResult == true
-					CallFunction(Player_SpikeHit)
-				end if
-			end if
-		next
+	checkResult = false
+    switch object.orientation
+    case COL_TOP  // Vertical
+    case COL_LEFT // Horizontal
+		CheckNotEqual(object.stateMove, 1)
+        break
+
+    case COL_RIGHT  // Horizontal (flipped)
+    case COL_BOTTOM // Vertical (flipped)
+		CheckNotEqual(object.stateMove, 3)
+        break
+
+    default
+	case COL_NONE
 		break
+    end switch
 
-	case 1
-		foreach (GROUP_PLAYERS, currentPlayer, ACTIVE_ENTITIES)
-			BoxCollisionTest(C_SOLID, object.entityPos, -16, -16, 15, 16, currentPlayer, C_BOX, C_BOX, C_BOX, C_BOX)
-			if checkResult == COL_BOTTOM
-				if player[currentPlayer].gravity == GRAVITY_GROUND
-					CallFunction(Player_Kill)
-				end if
-			end if
-
-			if player[currentPlayer].xvel <= 0
-				BoxCollisionTest(C_TOUCH, object.entityPos, 12, -15, 16, 15, currentPlayer, C_BOX, C_BOX, C_BOX, C_BOX)
-				if checkResult == true
-					CallFunction(Player_SpikeHit)
-				end if
-			end if
-		next
-		break
-
-	case 2
-		foreach (GROUP_PLAYERS, currentPlayer, ACTIVE_ENTITIES)
-			BoxCollisionTest(C_SOLID, object.entityPos, -15, -16, 16, 16, currentPlayer, C_BOX, C_BOX, C_BOX, C_BOX)
-			if checkResult == COL_BOTTOM
-				if player[currentPlayer].gravity == GRAVITY_GROUND
-					CallFunction(Player_Kill)
-				end if
-			end if
-
-			BoxCollisionTest(C_TOUCH, object.entityPos, -16, -15, -12, 15, currentPlayer, C_BOX, C_BOX, C_BOX, C_BOX)
-			if checkResult == true
-				CallFunction(Player_SpikeHit)
-			end if
-		next
-		break
-
-	case 3
-		foreach (GROUP_PLAYERS, currentPlayer, ACTIVE_ENTITIES)
-			temp0 = player[currentPlayer].yvel
-			BoxCollisionTest(C_SOLID, object.entityPos, -16, -16, 16, 15, currentPlayer, C_BOX, C_BOX, C_BOX, C_BOX)
-			if checkResult == COL_BOTTOM
-				if player[currentPlayer].gravity == GRAVITY_GROUND
-					if player[currentPlayer].collisionMode == CMODE_FLOOR
-						CallFunction(Player_Kill)
-						player[currentPlayer].invincibleTimer = 0
-					else
-						CallFunction(Player_SpikeHit)
+    if checkResult == true
+		foreach(GROUP_PLAYERS, currentPlayer, ACTIVE_ENTITIES)
+			BoxCollisionTest(C_SOLID, stage.entityPos, object.hitboxL, object.hitboxT, object.hitboxR, object.hitboxB, currentPlayer, C_BOX, C_BOX, C_BOX, C_BOX)
+			arrayPos0 = checkResult
+            if arrayPos0 != COL_NONE
+        		if arrayPos0 == COL_TOP
+        		    if object.moveOffset == 0x80000
+        		        player[currentPlayer].gravity = GRAVITY_AIR
 					end if
-				else
-					CallFunction(Player_SpikeHit)
-				end if
-				temp0 = 1
-			end if
+        		end if	
 
-			if temp0 < 1
-				BoxCollisionTest(C_TOUCH, object.entityPos, -15, 12, 15, 14, currentPlayer, C_BOX, C_BOX, C_BOX, C_BOX)
-				if checkResult == true
-					CallFunction(Player_SpikeHit)
-				end if
+        		switch arrayPos0
+				case COL_TOP
+					CheckGreater(player[currentPlayer].yvel, -1)
+					temp0 = checkResult
+					CheckEqual(object.stateMove, SPIKES_APPEAR)
+					temp0 |= checkResult
+					if temp0 == true
+						player[currentPlayer].xpos += object.offset.x
+						player[currentPlayer].ypos += spikes.offset.y
+						if arrayPos0 == object.orientation
+							CallFunction(Player_SpikeHit)
+						end if
+					end if
+					break
+
+				case COL_LEFT
+					CheckGreater(player[currentPlayer].xvel, -1)
+					temp0 = checkResult
+					CheckEqual(object.stateMove, SPIKES_APPEAR)
+					temp0 |= checkResult
+					if temp0 == true
+						if arrayPos0 == object.orientation
+							CallFunction(Player_SpikeHit)
+						end if
+					end if
+					break
+
+				case COL_RIGHT
+					CheckLower(player[currentPlayer].xvel, 1)
+					temp0 = checkResult
+					CheckEqual(object.stateMove, SPIKES_APPEAR)
+					temp0 |= checkResult
+					if temp0 == true
+						if arrayPos0 == object.orientation
+							CallFunction(Player_SpikeHit)
+						end if
+					end if
+					break
+
+				case COL_BOTTOM
+					CheckLower(player[currentPlayer].yvel, 1)
+					temp0 = checkResult
+					CheckEqual(object.stateMove, SPIKES_APPEAR)
+					temp0 |= checkResult
+					if temp0 == true
+						if arrayPos0 == object.orientation
+							if player[currentPlayer].gravity == GRAVITY_GROUND
+								if player[currentPlayer].collisionMode == CMODE_FLOOR
+									CallFunction(Player_Kill)
+									player[currentPlayer].invincibleTimer = 0
+								else
+									CallFunction(Player_SpikeHit)
+								end if
+							else
+								CallFunction(Player_SpikeHit)
+							end if
+						end if
+					end if
+					break
+
+				default
+					break
+        		end switch
 			end if
-		next
-		break
-	end switch
+        next
+    end if
+
+    object.xpos += object.offset.x
+    object.ypos += spikes.offset.y
 end event
 
 
 event ObjectDraw
-	DrawSprite(object.propertyValue)
+	CheckCurrentStageFolder("FBZ") // FBZ has unique spike sprites/behavior
+	if checkResult == true
+		temp0 = object.xpos
+		temp1 = object.ypos
+		
+		temp2 = object.count
+		temp2 >>= 1
+
+		object.frame = object.orientation
+		object.frame--
+		object.frame += object.animationFrame
+
+		object.timer++
+		if object.timer > 8
+			object.timer = 0
+			object.animationFrame += 4
+			object.animationFrame %= 8
+		end if
+
+		switch object.orientation
+		case COL_TOP 	// Vertical
+		case COL_BOTTOM // Vertical (flipped)
+			temp0 = 0x100000
+			temp3 = object.count
+			temp3 <<= 19
+			temp0 -= temp3
+			temp0 += object.xpos
+			while temp2 > 0
+				//object.frame--
+				DrawSpriteXY(object.frame, temp0, temp1)
+				temp0 += 0x200000
+				temp2--
+			loop
+
+			temp3 = object.count
+			temp3 &= 1
+			if temp3 != 0
+				temp0 -= 0x100000
+				DrawSpriteXY(object.frame, temp0, temp1)
+			end if
+			break
+
+		case COL_LEFT  // Horizontal
+		case COL_RIGHT // Horizontal (flipped)
+			temp1 = 0x100000
+			temp3 = object.count
+			temp3 <<= 19
+			temp1 -= temp3
+			temp1 += object.ypos
+			while temp2 > 0
+				DrawSpriteXY(object.frame, temp0, temp1)
+				temp1 += 0x200000
+				temp2--
+			loop
+
+			temp3 = object.count
+			temp3 &= 1
+			if temp3 != 0
+				temp1 -= 0x100000
+				DrawSpriteXY(object.frame, temp0, temp1)
+			end if
+			break
+
+		default
+			break
+		end switch
+	else
+		temp0 = object.xpos
+		temp1 = object.ypos
+		
+		temp2 = object.count
+		temp2 >>= 1
+
+		object.frame = object.orientation
+		object.frame--
+
+		switch object.orientation
+		case COL_TOP    // Vertical
+		case COL_BOTTOM // Vertical (flipped)
+			temp0 = 0x100000
+			temp3 = object.count
+			temp3 <<= 19
+			temp0 -= temp3
+			temp0 += object.xpos
+			while temp2 > 0
+				DrawSpriteXY(object.frame, temp0, temp1)
+				temp0 += 0x200000
+				temp2--
+			loop
+
+			temp3 = object.count
+			temp3 &= 1
+			if temp3 != 0
+				temp0 -= 0x100000
+				DrawSpriteXY(object.frame, temp0, temp1)
+			end if
+			break
+
+		case COL_LEFT  // Horizontal
+		case COL_RIGHT // Horizontal (flipped)
+			temp1 = 0x100000
+			temp3 = object.count
+			temp3 <<= 19
+			temp1 -= temp3
+			temp1 += object.ypos
+			while temp2 > 0
+				DrawSpriteXY(object.frame, temp0, temp1)
+				temp1 += 0x200000
+				temp2--
+			loop
+
+			temp3 = object.count
+			temp3 &= 1
+			if temp3 != 0
+				temp1 -= 0x100000
+				DrawSpriteXY(object.frame, temp0, temp1)
+			end if
+			break
+
+		default
+			break
+		end switch
+	end if
 end event
 
 
 event ObjectStartup
-	LoadSpriteSheet("Global/Items2.gif")
-	SpriteFrame(-16, -16, 32, 32, 182, 99)
-	SpriteFrame(-16, -16, 32, 32, 182, 132)
-	SpriteFrame(-16, -16, 32, 32, 215, 132)
-	SpriteFrame(-16, -16, 32, 32, 215, 99)
+	CheckCurrentStageFolder("FBZ") // FBZ has unique spike sprites/behavior
+	if checkResult == true
+		LoadSpriteSheet("FBZ/Objects.gif")
+		SpriteFrame(-16, -16, 32, 32, 10, 373)
+		SpriteFrame(-16, -16, 32, 32, 142, 406)
+		SpriteFrame(-16, -16, 32, 32, 130, 302)
+		SpriteFrame(-16, -16, 32, 32, 73, 373)
+
+		// TODO: Second frames
+		SpriteFrame(-16, -16, 32, 32, 43, 373)
+		SpriteFrame(-16, -16, 32, 32, 142, 373)
+		SpriteFrame(-16, -16, 32, 32, 130, 335)
+		SpriteFrame(-16, -16, 32, 32, 109, 373)
+	else
+		LoadSpriteSheet("Global/Items2.gif")
+		SpriteFrame(-16, -16, 32, 32, 182, 99)
+		SpriteFrame(-16, -16, 32, 32, 215, 132)
+		SpriteFrame(-16, -16, 32, 32, 182, 132)
+		SpriteFrame(-16, -16, 32, 32, 215, 99)
+	end if
 
 	temp0 = 0
 	Spikes_startDebugID = DebugMode_ObjCount
@@ -234,41 +428,86 @@ event ObjectStartup
 	loop
 
 	foreach (TypeName[Spikes], arrayPos0, ALL_ENTITIES)
-		if object[arrayPos0].propertyValue > 3
-			object[arrayPos0].propertyValue &= 3
-			temp0 = object[arrayPos0].propertyValue
-			temp0 &= 3
-			switch temp0
-			case 0
-				object[arrayPos0].xvel = 0
-				object[arrayPos0].yvel = 0x80000
-				object[arrayPos0].ypos += 0x200000
+		object[arrayPos0].moveType = object[arrayPos0].propertyValue
+		object[arrayPos0].moveType &= 0xF
+
+		object[arrayPos0].count = object[arrayPos0].propertyValue
+		object[arrayPos0].count &= 0x30
+		object[arrayPos0].count >>= 4
+		object[arrayPos0].count += 1
+
+		object[arrayPos0].orientation = object[arrayPos0].propertyValue
+		object[arrayPos0].orientation &= 0xC0
+		object[arrayPos0].orientation >>= 6
+
+		object[arrayPos0].count <<= 1
+		if object[arrayPos0].count < 2
+			object[arrayPos0].count = 2
+		end if
+
+		switch object[arrayPos0].orientation
+		case 0 // Vertical
+            if object[arrayPos0].direction != 0
+				object[arrayPos0].orientation = 4
+            else
+				object[arrayPos0].orientation = 1
+            end if
+
+            object[arrayPos0].hitboxL = -8
+            object[arrayPos0].hitboxL *= object[arrayPos0].count
+            object[arrayPos0].hitboxT = -16
+            object[arrayPos0].hitboxR = 8
+            object[arrayPos0].hitboxR *= object[arrayPos0].count
+            object[arrayPos0].hitboxB = 16
+			break
+		case 1 // Horizontal
+            if object[arrayPos0].direction != 0
+                object[arrayPos0].orientation = 3
+            else
+                object[arrayPos0].orientation = 2
+            end if
+
+            object[arrayPos0].hitboxL  = -16
+            object[arrayPos0].hitboxT  = -8
+            object[arrayPos0].hitboxT  *= object[arrayPos0].count
+            object[arrayPos0].hitboxR  = 16
+            object[arrayPos0].hitboxB  = 8
+            object[arrayPos0].hitboxB  *= object[arrayPos0].count
+			break
+		end switch
+
+        if object[arrayPos0].moveType != 0
+			switch object[arrayPos0].moveType
+			case 1 // Vertical
+        	    if object[arrayPos0].direction != 0
+        	        object[arrayPos0].yvel = -0x80000
+        	    else
+        	        object[arrayPos0].yvel = 0x80000
+        	    end if
+
+				// what the
+        	    object[arrayPos0].yvel = -0x80000
 				break
-				
-			case 1
-				object[arrayPos0].xvel = -0x80000
-				object[arrayPos0].yvel = 0
-				object[arrayPos0].xpos -= 0x200000
-				break
-				
-			case 2
-				object[arrayPos0].xvel = 0x80000
-				object[arrayPos0].yvel = 0
-				object[arrayPos0].xpos += 0x200000
-				break
-				
-			case 3
-				object[arrayPos0].xvel = 0
-				object[arrayPos0].yvel = -0x80000
-				object[arrayPos0].ypos -= 0x200000
+
+			case 2 // Horizontal
+        	    if object[arrayPos0].direction != 0
+        	        object[arrayPos0].xvel = -0x80000
+        	    else
+        	        object[arrayPos0].xvel = 0x80000
+        	    end if
 				break
 			end switch
+
+			temp0 = object[arrayPos0].xvel
+			temp0 *= 4
+            object[arrayPos0].xpos -= temp0
 			
-			object[arrayPos0].movePos = 0x200000
-			if object[arrayPos0].state != SPIKES_HASPARENT
-				object[arrayPos0].state = SPIKES_SHOWN
-			end if
-		end if
+			temp0 = object[arrayPos0].yvel
+			temp0 *= 4
+            object[arrayPos0].ypos -= temp0
+
+            object[arrayPos0].stateMove = SPIKES_HIDDEN
+        end if
 	next
 end event
 
@@ -286,53 +525,165 @@ event RSDKEdit
 			
 		case 0 // orientation
 			checkResult = object.propertyValue
+			checkResult >>= 6
 			checkResult &= 3
 			break
-			
-		case 1 // moving
-			GetBit(checkResult, object.propertyValue, 7)
+
+		case 1 // count
+			checkResult = object.propertyValue
+			checkResult >>= 4
+			checkResult &= 3
 			break
-			
+
+		case 2 // moveType
+			checkResult = object.propertyValue
+			checkResult &= 0xF
+			break
+		case 3 // parentSlot
+			checkResult = object.parentSlot
+			break
+		case 4
+			checkResult = object.state
+			break
 		end switch
 	else
 		switch editor.variableID
 		case EDIT_VAR_PROPVAL // property value
 			object.propertyValue = editor.variableValue
 			break
-			
+
 		case 0 // orientation
 			temp0 = editor.variableValue
 			temp0 &= 3
+			temp0 <<= 6
 
 			temp1 = 3
+			temp1 <<= 6
 			Not(temp1)
-
 			object.propertyValue &= temp1
+
 			object.propertyValue |= temp0
 			break
-			
-		case 1 // moving
-			CheckNotEqual(editor.variableValue, false)
-			SetBit(object.propertyValue, 7, checkResult)
+
+		case 1 // count
+			temp0 = editor.variableValue
+			temp0 &= 3
+			temp0 <<= 4
+
+			temp1 = 3
+			temp1 <<= 4
+			Not(temp1)
+			object.propertyValue &= temp1
+
+			object.propertyValue |= temp0
 			break
-			
-		case EDIT_VAR_VAL2
-			// TODO: dunno if val2 is set before, after, or not at all during this, test
-			CheckNotEqual(editor.variableValue, 0)
-			checkResult *= 5
-			object.state = checkResult
+
+		case 2 // moveType
+			temp0 = editor.variableValue
+			temp0 &= 0xF
+			object.propertyValue &= 0xF0
+			object.propertyValue |= temp0
 			break
-			
+		case 3 // parentSlot
+			object.parentSlot = editor.variableValue
+			break
+		case 4 // hasParent
+			object.state = editor.variableValue
+			break
 		end switch
 	end if
 end event
 
 
 event RSDKDraw
-	object.frame = object.propertyValue
-	object.frame &= 3
-	DrawSprite(object.frame)
+	object.moveType = object.propertyValue
+	object.moveType &= 0xF
+
+	object.count = object.propertyValue
+	object.count &= 0x30
+	object.count >>= 4
+	object.count += 1
+
+	object.orientation = object.propertyValue
+	object.orientation &= 0xC0
+	object.orientation >>= 6
+
+	object.count <<= 1
+	if object.count < 2
+		object.count = 2
+	end if
+
+	switch object.orientation
+	case 0 // Vertical
+        if object.direction != FLIP_NONE
+			object.orientation = COL_BOTTOM
+        else
+			object.orientation = COL_TOP
+        end if
+		break
+
+	case 1 // Horizontal
+        if object.direction != FLIP_NONE
+            object.orientation = COL_RIGHT
+        else
+            object.orientation = COL_LEFT
+        end if
+		break
+	end switch
+
+	temp0 = object.xpos
+	temp1 = object.ypos
 	
+    temp2 = object.count
+    temp2 >>= 1
+
+	object.frame = object.orientation
+	object.frame--
+
+    switch object.orientation
+    case COL_TOP 	// Vertical
+    case COL_BOTTOM // Vertical (flipped)
+		temp0 = 0x100000
+		temp3 = object.count
+		temp3 <<= 19
+		temp0 -= temp3
+		temp0 += object.xpos
+        while temp2 > 0
+			DrawSpriteXY(object.frame, temp0, temp1)
+            temp0 += 0x200000
+			temp2--
+        loop
+
+		temp3 = object.count
+		temp3 &= 1
+        if temp3 != 0
+            temp0 -= 0x100000
+			DrawSpriteXY(object.frame, temp0, temp1)
+        end if
+        break
+
+    case COL_LEFT  // Horizontal
+    case COL_RIGHT // Horizontal (flipped)
+		temp1 = 0x100000
+		temp3 = object.count
+		temp3 <<= 19
+		temp1 -= temp3
+		temp1 += object.ypos
+		while temp2 > 0
+			DrawSpriteXY(object.frame, temp0, temp1)
+            temp1 += 0x200000
+			temp2--
+        loop
+
+		temp3 = object.count
+		temp3 &= 1
+        if temp3 != 0
+            temp1 -= 0x100000
+			DrawSpriteXY(object.frame, temp0, temp1)
+        end if
+        break
+    end switch
+
 	CheckEqual(object.state, 5)
 	temp0 = checkResult
 	CheckEqual(editor.showGizmos, true)
@@ -349,23 +700,44 @@ end event
 
 
 event RSDKLoad
-	LoadSpriteSheet("Global/Items2.gif")
-	SpriteFrame(-16, -16, 32, 32, 182, 99)
-	SpriteFrame(-16, -16, 32, 32, 182, 132)
-	SpriteFrame(-16, -16, 32, 32, 215, 132)
-	SpriteFrame(-16, -16, 32, 32, 215, 99)
-
+	CheckCurrentStageFolder("FBZ")
+	if checkResult == true
+		LoadSpriteSheet("FBZ/Objects.gif")
+		SpriteFrame(-16, -16, 32, 32, 10, 373)
+		SpriteFrame(-16, -16, 32, 32, 142, 406)
+		SpriteFrame(-16, -16, 32, 32, 130, 302)
+		SpriteFrame(-16, -16, 32, 32, 73, 373)
+	else
+		LoadSpriteSheet("Global/Items2.gif")
+		SpriteFrame(-16, -16, 32, 32, 182, 99)
+		SpriteFrame(-16, -16, 32, 32, 215, 132)
+		SpriteFrame(-16, -16, 32, 32, 182, 132)
+		SpriteFrame(-16, -16, 32, 32, 215, 99)
+	end if
+	
 	AddEditorVariable("orientation")
 	SetActiveVariable("orientation")
-	AddEnumVariable("Up", 0)
-	AddEnumVariable("Right", 1)
-	AddEnumVariable("Left", 2)
-	AddEnumVariable("Down", 3)
+	AddEnumVariable("Vertically", 0)
+	AddEnumVariable("Horizontally", 1)
 
-	AddEditorVariable("moving")
-	SetActiveVariable("moving")
-	AddEnumVariable("false", false)
-	AddEnumVariable("true", true)
-	
-	SetVariableAlias(ALIAS_VAR_VAL2, "parentOffset") // state has to be set to 5 for this to be used
+	AddEditorVariable("count")
+	SetActiveVariable("count")
+	AddEnumVariable("1 Spike", 0)
+	AddEnumVariable("2 Spikes", 1)
+	AddEnumVariable("3 Spikes", 2)
+	AddEnumVariable("4 Spikes", 3)
+
+	AddEditorVariable("moveType")
+	SetActiveVariable("moveType")
+	AddEnumVariable("None", 0)
+	AddEnumVariable("Move Vertically", 1)
+	AddEnumVariable("Move Horizontally", 2)
+
+	AddEditorVariable("parentSlot")
+	SetActiveVariable("parentSlot")
+
+	AddEditorVariable("hasParent")
+	SetActiveVariable("hasParent")
+	AddEnumVariable("false", 0)
+	AddEnumVariable("true", 5)
 end event

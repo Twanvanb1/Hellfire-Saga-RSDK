@@ -132,6 +132,7 @@ event ObjectUpdate
 
         if object.alpha >= 0x100
             object.state++
+            PlayMusic(0)
         end if
         break
 
@@ -218,9 +219,9 @@ event ObjectUpdate
 
     if object.state > Title_State_FadeInFlames
         if object.state < 6
-            object.angle++
+            object.angle += 2
             Sin(temp1, object.angle)
-            temp1 >>= 6
+            temp1 >>= 7
             object.drawPos.y = screen.ycenter
             object.drawPos.y -= 24
             object.drawPos.y += temp1
@@ -251,10 +252,12 @@ event ObjectStartup
     SpriteFrame(-37, -9, 75, 18, 1, 145)
     SpriteFrame(-46, -9, 93, 18, 1, 164) 
 
+    SetMusicTrack("Title.ogg", 0, true)
+    
+
     temp0 = 0
     while temp0 <= 255
         SetPaletteEntry(2, temp0, 0x000000)
-        
         temp0++
     loop
 
